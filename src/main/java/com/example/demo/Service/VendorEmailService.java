@@ -10,6 +10,11 @@ public class VendorEmailService {
     @Autowired
     private EmailService emailService;
 
+    // Send a custom HTML email (for onboarding invitations, etc.)
+    public boolean sendCustomHtmlEmail(String message, String subject, String to) {
+        return emailService.sendHtmlEmail(message, subject, to);
+    }
+
     // Sends the vendor's credentials via HTML email
     public boolean sendVendorCredentials(Vendor vendor) {
         String fullName = capitalize(vendor.getVendorFullName());

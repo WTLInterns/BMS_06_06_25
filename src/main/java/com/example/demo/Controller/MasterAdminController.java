@@ -39,8 +39,9 @@ public class MasterAdminController {
     private VendorEmailService vendorEmailService;
 
     // --- Vendor CRUD (except update) ---
-    @PostMapping("/vendors")
+    @PostMapping("/vendors/{masteradminid}")
     public ResponseEntity<?> createVendor(
+        @PathVariable("masteradminid") Long masterAdminId,
         @ModelAttribute VendorForm vendorForm,
         @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
         @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
@@ -73,11 +74,11 @@ public class MasterAdminController {
             }
             vendor.setPassword(password);
 
-            MasterAdmin masterAdmin = null;
-            if (vendorForm.getMasterAdminId() != null) {
-                masterAdmin = masterAdminRepository.findById(vendorForm.getMasterAdminId()).orElse(null);
-                vendor.setMasterAdmin(masterAdmin);
+            MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
+            if (masterAdmin == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
             }
+            vendor.setMasterAdmin(masterAdmin);
             Vendor saved = vendorService.createVendor(vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
 
             // Compose response as { vendor: ..., masterAdmin: ... }
@@ -85,6 +86,109 @@ public class MasterAdminController {
             response.put("vendor", saved);
             response.put("masterAdmin", masterAdmin);
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    // PUT mapping to update vendor for a master admin
+    @PutMapping("/vendors/{masteradminid}/{vendorid}")
+    public ResponseEntity<?> updateVendor(
+        @PathVariable("masteradminid") Long masterAdminId,
+        @PathVariable("vendorid") Long vendorId,
+        @ModelAttribute VendorForm vendorForm,
+        @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
+        @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
+        @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
+        @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
+        @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
+        @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto
+    ) {
+        try {
+            MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
+            if (masterAdmin == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
+            }
+            Vendor vendor = vendorService.getVendorById(vendorId).orElse(null);
+            if (vendor == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vendor not found");
+            }
+            // Update fields (add more as needed)
+            vendor.setVendorFullName(vendorForm.getVendorFullName());
+            vendor.setVendorCompanyName(vendorForm.getVendorCompanyName());
+            vendor.setContactNo(vendorForm.getContactNo());
+            vendor.setAlternateMobileNo(vendorForm.getAlternateMobileNo());
+            vendor.setCity(vendorForm.getCity());
+            vendor.setVendorEmail(vendorForm.getVendorEmail());
+            vendor.setBankName(vendorForm.getBankName());
+            vendor.setBankAccountNo(vendorForm.getBankAccountNo());
+            vendor.setIfscCode(vendorForm.getIfscCode());
+            vendor.setAadharNo(vendorForm.getAadharNo());
+            vendor.setPanNo(vendorForm.getPanNo());
+            vendor.setGstNo(vendorForm.getGstNo());
+            vendor.setUdyogAadharNo(vendorForm.getUdyogAadharNo());
+            vendor.setVendorOtherDetails(vendorForm.getVendorOtherDetails());
+            vendor.setStatus(vendorForm.getStatus());
+            vendor.setPassword(vendorForm.getPassword());
+            vendor.setMasterAdmin(masterAdmin);
+            Vendor updated = vendorService.updateVendor(vendorId, vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    // POST mapping to send invitation email for vendor onboarding
+    @PostMapping("/vendors/onboard")
+    public ResponseEntity<?> onboardVendorFromForm(@RequestBody VendorForm vendorForm) {
+        try {
+            Long masterAdminId = vendorForm.getMasterAdminId();
+            MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
+            if (masterAdmin == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
+            }
+            Vendor vendor = new Vendor();
+            vendor.setVendorFullName(vendorForm.getVendorFullName());
+            vendor.setVendorCompanyName(vendorForm.getVendorCompanyName());
+            vendor.setContactNo(vendorForm.getContactNo());
+            vendor.setAlternateMobileNo(vendorForm.getAlternateMobileNo());
+            vendor.setCity(vendorForm.getCity());
+            vendor.setVendorEmail(vendorForm.getVendorEmail());
+            vendor.setBankName(vendorForm.getBankName());
+            vendor.setBankAccountNo(vendorForm.getBankAccountNo());
+            vendor.setIfscCode(vendorForm.getIfscCode());
+            vendor.setAadharNo(vendorForm.getAadharNo());
+            vendor.setPanNo(vendorForm.getPanNo());
+            vendor.setGstNo(vendorForm.getGstNo());
+            vendor.setUdyogAadharNo(vendorForm.getUdyogAadharNo());
+            vendor.setVendorOtherDetails(vendorForm.getVendorOtherDetails());
+            vendor.setStatus(vendorForm.getStatus());
+            vendor.setPassword(vendorForm.getPassword() != null ? vendorForm.getPassword() : vendorForm.getContactNo());
+            vendor.setMasterAdmin(masterAdmin);
+            Vendor saved = vendorService.createVendor(vendor, null, null, null, null, null, null);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/vendors/send-manually")
+    public ResponseEntity<?> sendVendorInvite(@RequestParam String email, @RequestParam Long masterAdminId) {
+        try {
+            // Compose invitation message
+            String message = "<html><body>"
+                    + "<h2>Welcome to WTL!</h2>"
+                    + "<p>If you want to onboard, please fill the following form: <a href='https://yourplatform.com/vendor-onboard-form?email=" + email + "&masterAdminId=" + masterAdminId + "'>Onboarding Form</a></p>"
+                    + "<p>If you need any help, please contact wtlcontact@gmail.com.</p>"
+                    + "<p>When you fill the form, your details will be automatically added to our database with your respective master admin. After successful submission, you will receive a confirmation email. Shortly, we will notify you about next steps.</p>"
+                    + "</body></html>";
+            String subject = "WTL Vendor Onboarding Invitation";
+            boolean sent = vendorEmailService.sendCustomHtmlEmail(message, subject, email);
+            if (sent) {
+                return ResponseEntity.ok("Invitation sent successfully to " + email);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send invitation email");
+            }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }

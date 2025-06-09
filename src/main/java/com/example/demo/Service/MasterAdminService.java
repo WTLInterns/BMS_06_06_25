@@ -77,7 +77,7 @@ public class MasterAdminService {
 
     // Read by id
     public Optional<MasterAdmin> getMasterAdminById(Long id) {
-        return masterAdminRepository.findById(id);
+        return masterAdminRepository.findByIdWithVendors(id);
     }
 
     // Update
