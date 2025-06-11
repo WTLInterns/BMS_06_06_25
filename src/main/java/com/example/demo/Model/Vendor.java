@@ -53,6 +53,9 @@ public class Vendor {
     @JsonBackReference
     private MasterAdmin masterAdmin;
     
+    public Long getMasterAdminId() {
+        return masterAdmin != null ? masterAdmin.getId() : null;
+    }
 }
 
 

@@ -21,6 +21,9 @@ public class MasterAdminService {
     @Autowired
     private MasterAdminRepository masterAdminRepository;
 
+    @Autowired
+    private com.example.demo.Repository.VendorRepository vendorRepository;
+
     // Login
     public MasterAdmin login(String email, String password) {
         MasterAdmin admin = masterAdminRepository.findByEmail(email).orElse(null);
@@ -150,5 +153,13 @@ public class MasterAdminService {
     // Delete
     public void deleteMasterAdmin(Long id) {
         masterAdminRepository.deleteById(id);
+    }
+
+    // Delete Vendor
+    public void deleteVendorById(Long id) {
+        if (!vendorRepository.existsById(id)) {
+            throw new RuntimeException("Vendor not found");
+        }
+        vendorRepository.deleteById(id);
     }
 }

@@ -39,7 +39,17 @@ public class MasterAdminController {
     private VendorEmailService vendorEmailService;
 
     // --- Vendor CRUD (except update) ---
-    @PostMapping("/vendors/{masteradminid}")
+
+    @DeleteMapping("/vendors/{id}")
+    public ResponseEntity<?> deleteVendor(@PathVariable Long id) {
+        try {
+            masterAdminService.deleteVendorById(id);
+            return ResponseEntity.ok().body("Vendor deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vendor not found");
+        }
+    }
+    @PostMapping("/vendors/{masteradminid:\\d+}")
     public ResponseEntity<?> createVendor(
         @PathVariable("masteradminid") Long masterAdminId,
         @ModelAttribute VendorForm vendorForm,
@@ -92,7 +102,7 @@ public class MasterAdminController {
     }
 
     // PUT mapping to update vendor for a master admin
-    @PutMapping("/vendors/{masteradminid}/{vendorid}")
+    @PutMapping("/vendors/{masteradminid:\\d+}/{vendorid:\\d+}")
     public ResponseEntity<?> updateVendor(
         @PathVariable("masteradminid") Long masterAdminId,
         @PathVariable("vendorid") Long vendorId,
@@ -129,7 +139,10 @@ public class MasterAdminController {
             vendor.setUdyogAadharNo(vendorForm.getUdyogAadharNo());
             vendor.setVendorOtherDetails(vendorForm.getVendorOtherDetails());
             vendor.setStatus(vendorForm.getStatus());
-            vendor.setPassword(vendorForm.getPassword());
+            if (vendorForm.getPassword() != null && !vendorForm.getPassword().isEmpty()) {
+                vendor.setPassword(vendorForm.getPassword());
+            }
+            // else, keep the existing password
             vendor.setMasterAdmin(masterAdmin);
             Vendor updated = vendorService.updateVendor(vendorId, vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
             return ResponseEntity.ok(updated);
@@ -178,7 +191,7 @@ public class MasterAdminController {
             // Compose invitation message
             String message = "<html><body>"
                     + "<h2>Welcome to WTL!</h2>"
-                    + "<p>If you want to onboard, please fill the following form: <a href='https://yourplatform.com/vendor-onboard-form?email=" + email + "&masterAdminId=" + masterAdminId + "'>Onboarding Form</a></p>"
+                    + "<p>If you want to onboard, please fill the following form: <a href='http://localhost:3000/vendor-onboard-form?email=" + email + "&masterAdminId=" + masterAdminId + "'>Onboarding Form</a></p>"
                     + "<p>If you need any help, please contact wtlcontact@gmail.com.</p>"
                     + "<p>When you fill the form, your details will be automatically added to our database with your respective master admin. After successful submission, you will receive a confirmation email. Shortly, we will notify you about next steps.</p>"
                     + "</body></html>";
@@ -249,12 +262,12 @@ public class MasterAdminController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    
 
     // Send vendor login details via email
-    @PostMapping("/vendors/send-login-details/{vendorEmail}")
-    public ResponseEntity<?> sendVendorLoginDetails(@PathVariable String vendorEmail) {
-        Vendor vendor = vendorService.findByEmail(vendorEmail);
+    @PostMapping("/vendors/send-login-details")
+    public ResponseEntity<?> sendVendorLoginDetails(@RequestParam String email) {
+        Vendor vendor = vendorService.findByEmail(email);
         if (vendor == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vendor not found");
         }
