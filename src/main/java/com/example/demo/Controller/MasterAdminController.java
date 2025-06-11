@@ -101,6 +101,53 @@ public class MasterAdminController {
         }
     }
 
+    // Public endpoint for vendor onboarding completion
+    @PutMapping("/vendors/complete-onboarding")
+    public ResponseEntity<?> completeOnboarding(
+        @ModelAttribute VendorForm vendorForm,
+        @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
+        @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
+        @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
+        @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
+        @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
+        @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto
+    ) {
+        try {
+            // 1. Find the existing vendor by email from the form
+            Vendor vendor = vendorService.findByEmail(vendorForm.getVendorEmail());
+
+            // 2. Check if the vendor exists and is in the "Invited" state
+            if (vendor == null || !"Invited".equals(vendor.getStatus())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No pending invitation found for this email.");
+            }
+
+            // 3. Update the vendor's details from the form
+            vendor.setVendorFullName(vendorForm.getVendorFullName());
+            vendor.setVendorCompanyName(vendorForm.getVendorCompanyName());
+            vendor.setContactNo(vendorForm.getContactNo());
+            vendor.setAlternateMobileNo(vendorForm.getAlternateMobileNo());
+            vendor.setCity(vendorForm.getCity());
+            vendor.setBankName(vendorForm.getBankName());
+            vendor.setBankAccountNo(vendorForm.getBankAccountNo());
+            vendor.setIfscCode(vendorForm.getIfscCode());
+            vendor.setAadharNo(vendorForm.getAadharNo());
+            vendor.setPanNo(vendorForm.getPanNo());
+            vendor.setGstNo(vendorForm.getGstNo());
+            vendor.setUdyogAadharNo(vendorForm.getUdyogAadharNo());
+            vendor.setVendorOtherDetails(vendorForm.getVendorOtherDetails());
+            // 4. Change status from "Invited" to "Inactive" (or "Active")
+            vendor.setStatus("Inactive"); // The admin can activate them later
+
+            // 5. Call the update service method, passing the files
+            vendorService.updateVendor(vendor.getId(), vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
+
+            return ResponseEntity.ok("Onboarding completed successfully. We will contact you shortly.");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during onboarding: " + e.getMessage());
+        }
+    }
+
     // PUT mapping to update vendor for a master admin
     @PutMapping("/vendors/{masteradminid:\\d+}/{vendorid:\\d+}")
     public ResponseEntity<?> updateVendor(
@@ -188,8 +235,30 @@ public class MasterAdminController {
     @PostMapping("/vendors/send-manually")
     public ResponseEntity<?> sendVendorInvite(@RequestParam String email, @RequestParam Long masterAdminId) {
         try {
-            // Compose invitation message
+            // 1. Find the master admin
+            MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
+            if (masterAdmin == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
+            }
+
+            // 2. Check if vendor with this email already exists
+            Vendor existingVendor = vendorService.findByEmail(email);
+            if (existingVendor != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Vendor with this email already exists");
+            }
+
+            // 3. Create a minimal vendor (with default password and role)
+            Vendor vendor = new Vendor();
+            vendor.setVendorEmail(email);
+            vendor.setMasterAdmin(masterAdmin);
+            vendor.setStatus("Invited");
+            vendor.setPassword(java.util.UUID.randomUUID().toString().substring(0,8)); // random password
+            vendor.setRole("Vendor");
+            Vendor savedVendor = vendorService.createVendor(vendor, null, null, null, null, null, null);
+
+            // 4. Compose invitation message
             String message = "<html><body>"
+            
                     + "<h2>Welcome to WTL!</h2>"
                     + "<p>If you want to onboard, please fill the following form: <a href='http://localhost:3000/vendor-onboard-form?email=" + email + "&masterAdminId=" + masterAdminId + "'>Onboarding Form</a></p>"
                     + "<p>If you need any help, please contact wtlcontact@gmail.com.</p>"
@@ -197,10 +266,16 @@ public class MasterAdminController {
                     + "</body></html>";
             String subject = "WTL Vendor Onboarding Invitation";
             boolean sent = vendorEmailService.sendCustomHtmlEmail(message, subject, email);
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("vendor", savedVendor);
+            response.put("emailSent", sent);
             if (sent) {
-                return ResponseEntity.ok("Invitation sent successfully to " + email);
+                response.put("message", "Invitation sent successfully to " + email);
+                return ResponseEntity.ok(response);
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send invitation email");
+                response.put("message", "Vendor created, but failed to send invitation email");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
