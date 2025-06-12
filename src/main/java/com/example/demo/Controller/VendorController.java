@@ -10,9 +10,52 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.Service.VendorPasswordResetService;
 
 
+
 @RestController
 @RequestMapping("/api/vendors")
 public class VendorController {
+
+    @Autowired
+    private VendorPasswordResetService vendorPasswordResetService;
+
+    // Vendor forgot password: request OTP
+    @PostMapping("/forgot-password/request")
+    public ResponseEntity<?> requestForgotPassword(@RequestParam String email) {
+        try {
+            vendorPasswordResetService.sendResetOTP(email);
+            return ResponseEntity.ok("OTP sent to email: " + email);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP request failed: " + e.getMessage());
+        }
+    }
+
+    // Vendor forgot password: verify OTP and reset password
+    @PostMapping("/forgot-password/verify-otp")
+    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
+        boolean valid = vendorPasswordResetService.verifyOTP(email, otp);
+        if (valid) {
+            try {
+                vendorPasswordResetService.resetPassword(email, newPassword);
+                return ResponseEntity.ok("Password reset successful.");
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password reset failed: " + e.getMessage());
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP.");
+        }
+    }
+
+    // Vendor forgot password: reset password
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<?> resetForgotPassword(@RequestParam String email, @RequestParam String newPassword) {
+        try {
+            vendorPasswordResetService.resetPassword(email, newPassword);
+            return ResponseEntity.ok("Password reset successful.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password reset failed: " + e.getMessage());
+        }
+    }
+
 
     @Autowired
     private com.example.demo.Service.MasterAdminService masterAdminService;
@@ -105,8 +148,6 @@ public class VendorController {
     }
 
 
-    @Autowired
-    private VendorPasswordResetService passwordResetService;
 
 
     @Autowired

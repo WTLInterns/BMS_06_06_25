@@ -2,7 +2,10 @@ package com.example.demo.Model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter; 
+import lombok.Setter;
+
+import java.util.List;
+
 import com.example.demo.Model.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -55,7 +58,53 @@ public class Vendor {
     
     public Long getMasterAdminId() {
         return masterAdmin != null ? masterAdmin.getId() : null;
+    } 
+
+
+    
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VendorDriver> vendorDriver;
+
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VendorVehicle> vendorVehicles;
+
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CustomBooking> customBookings;
+
+    
+
+    public Vendor(Long id, String vendorCompanyName, String contactNo, String alternateMobileNo, String city,
+                  String vendorEmail, String bankName, String bankAccountNo, String ifscCode, String aadharNo, String panNo,
+                  String udyogAadharNo, String govtApprovalCertificate, String vendorDocs, String vendorImage,
+                  String aadharPhoto, String panPhoto, String vendorOtherDetails, String password,List<VendorDriver> vendorDriver, List<VendorVehicle> vendorVehicles,List<CustomBooking> customBookings){
+        this.id = id;
+        this.vendorCompanyName = vendorCompanyName;
+        this.contactNo = contactNo;
+        this.alternateMobileNo = alternateMobileNo;
+        this.city = city;
+        this.vendorEmail = vendorEmail;
+        this.bankName = bankName;
+        this.bankAccountNo = bankAccountNo;
+        this.ifscCode = ifscCode;
+        this.aadharNo = aadharNo;
+        this.panNo = panNo;
+        this.udyogAadharNo = udyogAadharNo;
+        this.govtApprovalCertificate = govtApprovalCertificate;
+        this.vendorDocs = vendorDocs;
+        this.vendorImage = vendorImage;
+        this.aadharPhoto = aadharPhoto;
+        this.panPhoto = panPhoto;
+        this.vendorOtherDetails = vendorOtherDetails;
+        this.password = password;
+        this.vendorDriver=vendorDriver;
+        this.vendorVehicles=vendorVehicles;
+        this.customBookings=customBookings;
+        // this.user=user;
+
     }
+    public Vendor(){
+    }
+    
 }
 
 

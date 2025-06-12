@@ -362,10 +362,15 @@ public class MasterAdminController {
     }
 
     @PostMapping("/password-reset/verify-otp")
-    public ResponseEntity<?> verifyPasswordResetOtp(@RequestParam String email, @RequestParam String otp) {
+    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
         boolean valid = passwordResetService.verifyOTP(email, otp);
         if (valid) {
-            return ResponseEntity.ok("OTP verified.");
+            try {
+                passwordResetService.resetPassword(email, newPassword);
+                return ResponseEntity.ok("Password reset successful.");
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password reset failed: " + e.getMessage());
+            }
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP.");
         }
