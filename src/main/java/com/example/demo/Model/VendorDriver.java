@@ -6,13 +6,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.ManyToOne;
 
 @Entity
 public class VendorDriver {
-    
-    @Id
+
+	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int vendorDriverId;
 
@@ -46,7 +47,7 @@ public class VendorDriver {
 
 	private String driverOtherDetails;
 
-	private String role="DRIVER";
+	private String role = "DRIVER";
 
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String password;
@@ -56,8 +57,9 @@ public class VendorDriver {
 	private Double driverLongitude;
 
 	@ManyToOne
-    @JoinColumn(name = "vendor_id")
-    private Vendor vendor;
+	@JoinColumn(name = "vendor_id")
+	@JsonBackReference
+	private Vendor vendor;
 
 	public VendorDriver(int vendorDriverId, String driverName, String contactNo, String altContactNo, String address,
 			String driverImage, String driverSelfie, String dLNo, String pvcNo, String dLnoImage, String pvcImage,
@@ -87,7 +89,7 @@ public class VendorDriver {
 		this.vendor = vendor;
 	}
 
-	public VendorDriver(){
+	public VendorDriver() {
 		super();
 	}
 
@@ -259,5 +261,4 @@ public class VendorDriver {
 		this.vendor = vendor;
 	}
 
-	
 }

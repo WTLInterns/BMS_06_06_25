@@ -33,6 +33,7 @@ public class CustomBookingController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
         }
         customBooking.setMasterAdmin(masterAdmin);
+        // Optionally validate or set collection, fullName, customerEmail if needed
         return ResponseEntity.status(HttpStatus.CREATED).body(customBookingService.createBooking(customBooking));
     }
 
@@ -44,7 +45,8 @@ public class CustomBookingController {
     }
 
     @PutMapping("/{bookingId}")
-    public ResponseEntity<CustomBooking> updateBooking(@PathVariable Integer bookingId, @RequestBody CustomBooking bookingDetails) {
+    public ResponseEntity<CustomBooking> updateBooking(@PathVariable Integer bookingId,
+            @RequestBody CustomBooking bookingDetails) {
         return ResponseEntity.ok(customBookingService.updateBooking(bookingId, bookingDetails));
     }
 

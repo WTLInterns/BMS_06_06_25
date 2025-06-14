@@ -35,7 +35,8 @@ public class CustomBookingService {
     }
 
     public CustomBooking updateBooking(Integer bookingId, CustomBooking bookingDetails) {
-        CustomBooking existingBooking = customBookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
+        CustomBooking existingBooking = customBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         existingBooking.setBookingDate(bookingDetails.getBookingDate());
         existingBooking.setBookingTime(bookingDetails.getBookingTime());
@@ -54,6 +55,9 @@ public class CustomBookingService {
         existingBooking.setTripType(bookingDetails.getTripType());
         existingBooking.setVendor(bookingDetails.getVendor());
         existingBooking.setMasterAdmin(bookingDetails.getMasterAdmin());
+        existingBooking.setCollection(bookingDetails.getCollection());
+        existingBooking.setFullName(bookingDetails.getFullName());
+        existingBooking.setCustomerEmail(bookingDetails.getCustomerEmail());
 
         return customBookingRepository.save(existingBooking);
     }

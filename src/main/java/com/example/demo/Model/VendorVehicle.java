@@ -1,5 +1,6 @@
 package com.example.demo.Model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,7 +10,7 @@ import jakarta.persistence.ManyToOne;
 
 @Entity
 public class VendorVehicle {
-    @Id
+	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int vendorCabId;
 
@@ -42,14 +43,13 @@ public class VendorVehicle {
 	private String cabSideImage;
 
 	@ManyToOne
-    @JoinColumn(name = "vendor_id")
-    private Vendor vendor;
+	@JoinColumn(name = "vendor_id")
+	@JsonBackReference
+	private Vendor vendor;
 
-	public VendorVehicle(){
+	public VendorVehicle() {
 		super();
 	}
-
-	
 
 	public VendorVehicle(int vendorCabId, String carName, String rCNo, String rCImage, String vehicleNo,
 			String vehicleNoImage, String insuranceImage, String permitImage, String authorizationImage,
@@ -72,8 +72,6 @@ public class VendorVehicle {
 		this.cabSideImage = cabSideImage;
 		this.vendor = vendor;
 	}
-
-
 
 	public int getVendorCabId() {
 		return vendorCabId;
@@ -203,5 +201,4 @@ public class VendorVehicle {
 		this.vendor = vendor;
 	}
 
-	
 }

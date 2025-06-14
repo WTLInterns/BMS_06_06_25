@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.example.demo.Model.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "vendor")
@@ -46,37 +47,37 @@ public class Vendor {
     private String gstNoImageUrl;
     private String status;
     private String role = "Vendor";
-    private String password; 
+    private String password;
 
     // @Column(name = "master_admin_id")
-    // private Long masterAdminId; 
+    // private Long masterAdminId;
 
- @ManyToOne
+    @ManyToOne
     @JoinColumn(name = "master_admin_id")
     @JsonBackReference
     private MasterAdmin masterAdmin;
-    
+
     public Long getMasterAdminId() {
         return masterAdmin != null ? masterAdmin.getId() : null;
-    } 
+    }
 
-
-    
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<VendorDriver> vendorDriver;
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<VendorVehicle> vendorVehicles;
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<CustomBooking> customBookings;
 
-    
-
     public Vendor(Long id, String vendorCompanyName, String contactNo, String alternateMobileNo, String city,
-                  String vendorEmail, String bankName, String bankAccountNo, String ifscCode, String aadharNo, String panNo,
-                  String udyogAadharNo, String govtApprovalCertificate, String vendorDocs, String vendorImage,
-                  String aadharPhoto, String panPhoto, String vendorOtherDetails, String password,List<VendorDriver> vendorDriver, List<VendorVehicle> vendorVehicles,List<CustomBooking> customBookings){
+            String vendorEmail, String bankName, String bankAccountNo, String ifscCode, String aadharNo, String panNo,
+            String udyogAadharNo, String govtApprovalCertificate, String vendorDocs, String vendorImage,
+            String aadharPhoto, String panPhoto, String vendorOtherDetails, String password,
+            List<VendorDriver> vendorDriver, List<VendorVehicle> vendorVehicles, List<CustomBooking> customBookings) {
         this.id = id;
         this.vendorCompanyName = vendorCompanyName;
         this.contactNo = contactNo;
@@ -96,17 +97,14 @@ public class Vendor {
         this.panPhoto = panPhoto;
         this.vendorOtherDetails = vendorOtherDetails;
         this.password = password;
-        this.vendorDriver=vendorDriver;
-        this.vendorVehicles=vendorVehicles;
-        this.customBookings=customBookings;
+        this.vendorDriver = vendorDriver;
+        this.vendorVehicles = vendorVehicles;
+        this.customBookings = customBookings;
         // this.user=user;
 
     }
-    public Vendor(){
+
+    public Vendor() {
     }
-    
+
 }
-
-
-
-

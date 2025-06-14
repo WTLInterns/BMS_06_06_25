@@ -25,7 +25,6 @@ public class MasterAdminController {
     @Autowired
     private MasterAdminPasswordResetService passwordResetService;
 
-
     @Autowired
     private MasterAdminService masterAdminService;
 
@@ -49,17 +48,17 @@ public class MasterAdminController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vendor not found");
         }
     }
+
     @PostMapping("/vendors/{masteradminid:\\d+}")
     public ResponseEntity<?> createVendor(
-        @PathVariable("masteradminid") Long masterAdminId,
-        @ModelAttribute VendorForm vendorForm,
-        @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
-        @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
-        @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
-        @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
-        @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
-        @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto
-    ) {
+            @PathVariable("masteradminid") Long masterAdminId,
+            @ModelAttribute VendorForm vendorForm,
+            @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
+            @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
+            @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
+            @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
+            @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
+            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto) {
         try {
             Vendor vendor = new Vendor();
             vendor.setVendorFullName(vendorForm.getVendorFullName());
@@ -89,7 +88,8 @@ public class MasterAdminController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
             }
             vendor.setMasterAdmin(masterAdmin);
-            Vendor saved = vendorService.createVendor(vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
+            Vendor saved = vendorService.createVendor(vendor, vendorImage, gstNoImage, govtApprovalCertificate,
+                    vendorDocs, aadharPhoto, panPhoto);
 
             // Compose response as { vendor: ..., masterAdmin: ... }
             java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -104,14 +104,13 @@ public class MasterAdminController {
     // Public endpoint for vendor onboarding completion
     @PutMapping("/vendors/complete-onboarding")
     public ResponseEntity<?> completeOnboarding(
-        @ModelAttribute VendorForm vendorForm,
-        @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
-        @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
-        @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
-        @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
-        @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
-        @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto
-    ) {
+            @ModelAttribute VendorForm vendorForm,
+            @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
+            @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
+            @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
+            @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
+            @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
+            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto) {
         try {
             // 1. Find the existing vendor by email from the form
             Vendor vendor = vendorService.findByEmail(vendorForm.getVendorEmail());
@@ -139,28 +138,36 @@ public class MasterAdminController {
             vendor.setStatus("Inactive"); // The admin can activate them later
 
             // 5. Call the update service method, passing the files
-            vendorService.updateVendor(vendor.getId(), vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
+            vendorService.updateVendor(vendor.getId(), vendor, vendorImage, gstNoImage, govtApprovalCertificate,
+                    vendorDocs, aadharPhoto, panPhoto);
 
             return ResponseEntity.ok("Onboarding completed successfully. We will contact you shortly.");
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during onboarding: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error during onboarding: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/{masterAdminId}/vendors")
+    public ResponseEntity<List<Vendor>> getVendorsByMasterAdmin(@PathVariable("masterAdminId") Long masterAdminId) {
+        return masterAdminService.getMasterAdminById(masterAdminId)
+                .map(masterAdmin -> ResponseEntity.ok(masterAdmin.getVendors()))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.emptyList()));
     }
 
     // PUT mapping to update vendor for a master admin
     @PutMapping("/vendors/{masteradminid:\\d+}/{vendorid:\\d+}")
     public ResponseEntity<?> updateVendor(
-        @PathVariable("masteradminid") Long masterAdminId,
-        @PathVariable("vendorid") Long vendorId,
-        @ModelAttribute VendorForm vendorForm,
-        @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
-        @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
-        @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
-        @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
-        @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
-        @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto
-    ) {
+            @PathVariable("masteradminid") Long masterAdminId,
+            @PathVariable("vendorid") Long vendorId,
+            @ModelAttribute VendorForm vendorForm,
+            @RequestParam(value = "vendorImage", required = false) MultipartFile vendorImage,
+            @RequestParam(value = "gstNoImage", required = false) MultipartFile gstNoImage,
+            @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
+            @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
+            @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
+            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto) {
         try {
             MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
             if (masterAdmin == null) {
@@ -191,7 +198,8 @@ public class MasterAdminController {
             }
             // else, keep the existing password
             vendor.setMasterAdmin(masterAdmin);
-            Vendor updated = vendorService.updateVendor(vendorId, vendor, vendorImage, gstNoImage, govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
+            Vendor updated = vendorService.updateVendor(vendorId, vendor, vendorImage, gstNoImage,
+                    govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
@@ -252,15 +260,16 @@ public class MasterAdminController {
             vendor.setVendorEmail(email);
             vendor.setMasterAdmin(masterAdmin);
             vendor.setStatus("Invited");
-            vendor.setPassword(java.util.UUID.randomUUID().toString().substring(0,8)); // random password
+            vendor.setPassword(java.util.UUID.randomUUID().toString().substring(0, 8)); // random password
             vendor.setRole("Vendor");
             Vendor savedVendor = vendorService.createVendor(vendor, null, null, null, null, null, null);
 
             // 4. Compose invitation message
             String message = "<html><body>"
-            
+
                     + "<h2>Welcome to WTL!</h2>"
-                    + "<p>If you want to onboard, please fill the following form: <a href='http://localhost:3000/vendor-onboard-form?email=" + email + "&masterAdminId=" + masterAdminId + "'>Onboarding Form</a></p>"
+                    + "<p>If you want to onboard, please fill the following form: <a href='http://localhost:3000/vendor-onboard-form?email="
+                    + email + "&masterAdminId=" + masterAdminId + "'>Onboarding Form</a></p>"
                     + "<p>If you need any help, please contact wtlcontact@gmail.com.</p>"
                     + "<p>When you fill the form, your details will be automatically added to our database with your respective master admin. After successful submission, you will receive a confirmation email. Shortly, we will notify you about next steps.</p>"
                     + "</body></html>";
@@ -295,7 +304,8 @@ public class MasterAdminController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createMasterAdmin(@ModelAttribute com.example.demo.Model.MasterAdminForm form, @RequestParam(value = "profileImg", required = false) MultipartFile profileImg) {
+    public ResponseEntity<?> createMasterAdmin(@ModelAttribute com.example.demo.Model.MasterAdminForm form,
+            @RequestParam(value = "profileImg", required = false) MultipartFile profileImg) {
         try {
             // Map form to entity
             MasterAdmin masterAdmin = new MasterAdmin();
@@ -325,9 +335,9 @@ public class MasterAdminController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMasterAdmin(
-        @PathVariable Long id,
-        @ModelAttribute com.example.demo.Model.MasterAdminForm form, // Use the DTO, not the entity
-        @RequestParam(value = "profileImg", required = false) MultipartFile profileImg // File field only
+            @PathVariable Long id,
+            @ModelAttribute com.example.demo.Model.MasterAdminForm form, // Use the DTO, not the entity
+            @RequestParam(value = "profileImg", required = false) MultipartFile profileImg // File field only
     ) {
         try {
             MasterAdmin updated = masterAdminService.updateMasterAdmin(id, form, profileImg);
@@ -337,8 +347,6 @@ public class MasterAdminController {
         }
     }
 
-    
-
     // Send vendor login details via email
     @PostMapping("/vendors/send-login-details")
     public ResponseEntity<?> sendVendorLoginDetails(@RequestParam String email) {
@@ -347,7 +355,8 @@ public class MasterAdminController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vendor not found");
         }
         boolean sent = vendorEmailService.sendVendorCredentials(vendor);
-        return sent ? ResponseEntity.ok("Login details sent to vendor.") : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email.");
+        return sent ? ResponseEntity.ok("Login details sent to vendor.")
+                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email.");
     }
 
     // --- Password Reset (OTP) Endpoints ---
@@ -362,7 +371,8 @@ public class MasterAdminController {
     }
 
     @PostMapping("/password-reset/verify-otp")
-    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
+    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestParam String email, @RequestParam String otp,
+            @RequestParam String newPassword) {
         boolean valid = passwordResetService.verifyOTP(email, otp);
         if (valid) {
             try {
@@ -422,7 +432,8 @@ public class MasterAdminController {
     }
 
     @PostMapping("/forgot-password/verify")
-    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
+    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestParam String email, @RequestParam String otp,
+            @RequestParam String newPassword) {
         if (!masterAdminService.verifyOTP(email, otp)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP");
         }

@@ -1,17 +1,25 @@
 package com.example.demo.Controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.demo.Model.CustomBooking;
 import com.example.demo.Model.Vendor;
 import com.example.demo.Model.VendorDriver;
 import com.example.demo.Model.VendorVehicle;
 import com.example.demo.Repository.CustomBookingRepository;
-import com.example.demo.Repository.VendorRepository;
 import com.example.demo.Repository.VendorDriverRepository;
+import com.example.demo.Repository.VendorRepository;
 import com.example.demo.Repository.VendorVehicleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -73,5 +81,13 @@ public class BookingAssignmentController {
         customBookingRepository.save(booking);
 
         return ResponseEntity.ok("Driver and vehicle assigned to booking successfully.");
-    }
+    }   
+
+    //Get All Customer Booking Of Particular Vendor
+    @GetMapping("/vendor/{vendorId}")
+public ResponseEntity<List<CustomBooking>> getBookingsByVendor(@PathVariable Long vendorId) {
+    List<CustomBooking> bookings = customBookingRepository.findByVendorId(vendorId);
+    return ResponseEntity.ok(bookings);
 }
+}
+
