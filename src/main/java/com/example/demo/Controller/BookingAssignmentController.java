@@ -37,57 +37,62 @@ public class BookingAssignmentController {
     @Autowired
     private VendorVehicleRepository vendorVehicleRepository;
 
-    @PostMapping("/{bookingId}/assign-vendor/{vendorId}")
-    public ResponseEntity<?> assignVendorToBooking(@PathVariable Integer bookingId, @PathVariable Long vendorId) {
+    @PostMapping("/masteradmins/{masterAdminId}/custom-bookings/{bookingId}/assign-vendor/{vendorId}")
+    public ResponseEntity<CustomBooking> assignVendorToBooking(
+            @PathVariable Long masterAdminId,
+            @PathVariable Integer bookingId,
+            @PathVariable Long vendorId) {
+
         CustomBooking booking = customBookingRepository.findById(bookingId).orElse(null);
         if (booking == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         Vendor vendor = vendorRepository.findById(vendorId).orElse(null);
         if (vendor == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vendor not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         booking.setVendor(vendor);
-        customBookingRepository.save(booking);
+        CustomBooking updated = customBookingRepository.save(booking);
 
-        return ResponseEntity.ok("Vendor assigned to booking successfully.");
+        return ResponseEntity.ok(updated);
     }
 
     @PostMapping("/{bookingId}/assign-driver-vehicle")
-    public ResponseEntity<?> assignDriverAndVehicleToBooking(@PathVariable Integer bookingId, @RequestParam Integer driverId, @RequestParam Integer vehicleId) {
+    public ResponseEntity<CustomBooking> assignDriverAndVehicleToBooking(@PathVariable Integer bookingId,
+            @RequestParam Integer driverId, @RequestParam Integer vehicleId) {
         CustomBooking booking = customBookingRepository.findById(bookingId).orElse(null);
         if (booking == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         VendorDriver driver = vendorDriverRepository.findById(driverId).orElse(null);
         if (driver == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Driver not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         VendorVehicle vehicle = vendorVehicleRepository.findById(vehicleId).orElse(null);
         if (vehicle == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        if (booking.getVendor() == null || !booking.getVendor().getId().equals(driver.getVendor().getId()) || !booking.getVendor().getId().equals(vehicle.getVendor().getId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Driver or vehicle does not belong to the assigned vendor.");
+        if (booking.getVendor() == null || !booking.getVendor().getId().equals(driver.getVendor().getId())
+                || !booking.getVendor().getId().equals(vehicle.getVendor().getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         booking.setDriver(driver);
         booking.setVehicle(vehicle);
-        customBookingRepository.save(booking);
+        CustomBooking updated = customBookingRepository.save(booking);
 
-        return ResponseEntity.ok("Driver and vehicle assigned to booking successfully.");
-    }   
+        return ResponseEntity.ok(updated);
+    }
 
-    //Get All Customer Booking Of Particular Vendor
+    // Get All Customer Booking Of Particular Vendor
     @GetMapping("/vendor/{vendorId}")
-public ResponseEntity<List<CustomBooking>> getBookingsByVendor(@PathVariable Long vendorId) {
-    List<CustomBooking> bookings = customBookingRepository.findByVendorId(vendorId);
-    return ResponseEntity.ok(bookings);
+    public ResponseEntity<List<CustomBooking>> getBookingsByVendor(@PathVariable Long vendorId) {
+        List<CustomBooking> bookings = customBookingRepository.findByVendorId(vendorId);
+        return ResponseEntity.ok(bookings);
+    }
 }
-}
-

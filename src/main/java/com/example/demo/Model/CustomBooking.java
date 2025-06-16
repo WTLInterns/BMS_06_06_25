@@ -1,6 +1,7 @@
 package com.example.demo.Model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -41,6 +42,7 @@ public class CustomBooking {
 
     @ManyToOne
     @JoinColumn(name = "master_admin_id")
+    @JsonIgnore
     private MasterAdmin masterAdmin;
 
     @ManyToOne

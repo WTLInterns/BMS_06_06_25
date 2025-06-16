@@ -23,18 +23,20 @@ public class CustomBookingController {
 
     @GetMapping
     public ResponseEntity<List<CustomBooking>> getBookingsByMasterAdmin(@PathVariable Long masterAdminId) {
-        return ResponseEntity.ok(customBookingService.getBookingsByMasterAdmin(masterAdminId));
+        List<CustomBooking> bookings = customBookingService.getBookingsByMasterAdmin(masterAdminId);
+        return ResponseEntity.ok(bookings);
     }
 
     @PostMapping
-    public ResponseEntity<?> createBooking(@PathVariable Long masterAdminId, @RequestBody CustomBooking customBooking) {
+    public ResponseEntity<CustomBooking> createBooking(@PathVariable Long masterAdminId,
+            @RequestBody CustomBooking customBooking) {
         MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
         if (masterAdmin == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid master admin ID");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         customBooking.setMasterAdmin(masterAdmin);
-        // Optionally validate or set collection, fullName, customerEmail if needed
-        return ResponseEntity.status(HttpStatus.CREATED).body(customBookingService.createBooking(customBooking));
+        CustomBooking saved = customBookingService.createBooking(customBooking);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @GetMapping("/{bookingId}")
@@ -47,7 +49,8 @@ public class CustomBookingController {
     @PutMapping("/{bookingId}")
     public ResponseEntity<CustomBooking> updateBooking(@PathVariable Integer bookingId,
             @RequestBody CustomBooking bookingDetails) {
-        return ResponseEntity.ok(customBookingService.updateBooking(bookingId, bookingDetails));
+        CustomBooking updated = customBookingService.updateBooking(bookingId, bookingDetails);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{bookingId}")
