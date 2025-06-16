@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -94,5 +95,42 @@ public class BookingAssignmentController {
     public ResponseEntity<List<CustomBooking>> getBookingsByVendor(@PathVariable Long vendorId) {
         List<CustomBooking> bookings = customBookingRepository.findByVendorId(vendorId);
         return ResponseEntity.ok(bookings);
+    }
+
+    // DTO for booking with vendor info
+    class CustomBookingWithVendorDTO {
+        private Integer bookingId;
+        private Long assignedVendorId;
+        private String assignedVendorName;
+
+        public CustomBookingWithVendorDTO(CustomBooking booking) {
+            this.bookingId = booking.getBookingId();
+            this.assignedVendorId = booking.getVendor() != null ? booking.getVendor().getId() : null;
+            this.assignedVendorName = booking.getVendor() != null
+                    ? (booking.getVendor().getVendorCompanyName() != null ? booking.getVendor().getVendorCompanyName()
+                            : booking.getVendor().getVendorFullName())
+                    : null;
+        }
+
+        public Integer getBookingId() {
+            return bookingId;
+        }
+
+        public Long getAssignedVendorId() {
+            return assignedVendorId;
+        }
+
+        public String getAssignedVendorName() {
+            return assignedVendorName;
+        }
+    }
+
+    @GetMapping("/masteradmins/{masterAdminId}/custom-bookings")
+    public ResponseEntity<List<CustomBookingWithVendorDTO>> getBookingsByMasterAdminWithVendor(
+            @PathVariable Long masterAdminId) {
+        List<CustomBooking> bookings = customBookingRepository.findByMasterAdminId(masterAdminId);
+        List<CustomBookingWithVendorDTO> dtos = bookings.stream().map(CustomBookingWithVendorDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 }
