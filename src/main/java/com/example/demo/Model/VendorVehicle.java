@@ -11,7 +11,7 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class VendorVehicle {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)  
 	private int vendorCabId;
 
 	private String carName;

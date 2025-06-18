@@ -1,13 +1,18 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Model.Vendor;
+import com.example.demo.Model.CustomBooking;
 import com.example.demo.Service.VendorService;
+import com.example.demo.Service.CustomBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.Service.VendorPasswordResetService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -17,6 +22,9 @@ public class VendorController {
 
     @Autowired
     private VendorPasswordResetService vendorPasswordResetService;
+
+    @Autowired
+    private CustomBookingService bookingService;
 
     // Vendor forgot password: request OTP
     @PostMapping("/forgot-password/request")
@@ -56,6 +64,94 @@ public class VendorController {
         }
     }
 
+    //Changes From Here
+    
+    // Get all bookings for vendor
+    @GetMapping("/{vendorId}/bookings")
+    public ResponseEntity<List<CustomBooking>> getVendorBookings(@PathVariable Long vendorId) {
+        return ResponseEntity.ok(bookingService.getBookingsByVendor(vendorId));
+    }
+
+    // Get bookings by status for vendor
+    @GetMapping("/{vendorId}/bookings/status/{status}")
+    public ResponseEntity<List<CustomBooking>> getVendorBookingsByStatus(
+            @PathVariable Long vendorId,
+            @PathVariable String status) {
+        return ResponseEntity.ok(bookingService.getBookingsByVendorAndStatus(vendorId, status));
+    }
+
+    // Get booking statistics for vendor
+    @GetMapping("/{vendorId}/bookings/stats")
+    public ResponseEntity<Map<String, Long>> getVendorBookingStats(@PathVariable Long vendorId) {
+        return ResponseEntity.ok(bookingService.getVendorBookingStats(vendorId));
+    }
+
+
+
+
+
+    // Get total revenue for vendor
+    @GetMapping("/{vendorId}/bookings/revenue")
+    public ResponseEntity<Double> getVendorTotalRevenue(@PathVariable Long vendorId) {
+        double totalRevenue = bookingService.calculateTotalRevenue(vendorId);
+        return ResponseEntity.ok(totalRevenue);
+    }
+
+
+
+
+    
+    // Update booking status (only for vendor's own bookings)
+    @PostMapping("/{vendorId}/bookings/{bookingId}/status")
+    public ResponseEntity<?> updateBookingStatus(
+            @PathVariable Long vendorId,
+            @PathVariable Integer bookingId,
+            @RequestParam String status) {
+        try {
+            // Validate status
+            if (!Arrays.asList("pending", "ongoing", "completed", "cancelled").contains(status.toLowerCase())) {
+                return ResponseEntity.badRequest().body("Invalid status value");
+            }
+
+            // Get booking and verify it belongs to this vendor
+            CustomBooking booking = bookingService.findById(bookingId);
+            if (booking == null) {
+                return ResponseEntity.notFound().build();
+            }
+            if (!booking.getVendor().getId().equals(vendorId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied - not your booking");
+            }
+
+            // Update status
+            bookingService.updateBookingStatus(bookingId, status);
+            return ResponseEntity.ok(booking);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating booking status: " + e.getMessage());
+        }
+    }
+
+    // Get booking details
+    @GetMapping("/{vendorId}/bookings/{bookingId}")
+    public ResponseEntity<CustomBooking> getBookingDetails(
+            @PathVariable Long vendorId,
+            @PathVariable Integer bookingId) {
+        try {
+            CustomBooking booking = bookingService.findById(bookingId);
+            if (booking == null) {
+                return ResponseEntity.notFound().build();
+            }
+            if (!booking.getVendor().getId().equals(vendorId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(booking);
+            }
+            return ResponseEntity.ok(booking);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching booking details: " + e.getMessage());
+        }
+    }
+
+    //Till Here
 
     @Autowired
     private com.example.demo.Service.MasterAdminService masterAdminService;
@@ -180,5 +276,7 @@ public class VendorController {
         }
         return ResponseEntity.ok(response);
     }
+
+    
 }
 

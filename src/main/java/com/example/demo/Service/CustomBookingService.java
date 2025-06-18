@@ -5,8 +5,11 @@ import com.example.demo.Repository.CustomBookingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomBookingService {
@@ -29,6 +32,66 @@ public class CustomBookingService {
     public List<CustomBooking> getBookingsByVendor(Long vendorId) {
         return customBookingRepository.findByVendorId(vendorId);
     }
+
+    //Changes About Status
+
+    public List<CustomBooking> getBookingsByVendorAndStatus(Long vendorId, String status) {
+        return getBookingsByVendor(vendorId).stream()
+            .filter(b -> status.equalsIgnoreCase(b.getBookingStatus()))
+            .collect(Collectors.toList());
+    }
+
+    public Map<String, Long> getVendorBookingStats(Long vendorId) {
+        Map<String, Long> stats = new HashMap<>();
+        List<CustomBooking> bookings = getBookingsByVendor(vendorId);
+        
+        stats.put("pending", bookings.stream()
+            .filter(b -> "pending".equalsIgnoreCase(b.getBookingStatus()))
+            .count());
+        
+        stats.put("ongoing", bookings.stream()
+            .filter(b -> "ongoing".equalsIgnoreCase(b.getBookingStatus()))
+            .count());
+        
+        stats.put("completed", bookings.stream()
+            .filter(b -> "completed".equalsIgnoreCase(b.getBookingStatus()))
+            .count());
+        
+        stats.put("cancelled", bookings.stream()
+            .filter(b -> "cancelled".equalsIgnoreCase(b.getBookingStatus()))
+            .count());
+        
+        return stats;
+    }
+
+    public CustomBooking findById(Integer bookingId) {
+        return customBookingRepository.findById(bookingId)
+            .orElse(null);
+    }
+
+
+
+    
+
+    // Calculate total revenue for vendor
+    public double calculateTotalRevenue(Long vendorId) {
+        List<CustomBooking> bookings = getBookingsByVendor(vendorId);
+        return bookings.stream()
+            .filter(b -> "completed".equalsIgnoreCase(b.getBookingStatus()))
+            .mapToDouble(b -> Double.parseDouble(b.getBookingAmount()))
+            .sum();
+    }
+
+    public CustomBooking updateBookingStatus(Integer bookingId, String status) {
+        CustomBooking booking = findById(bookingId);
+        if (booking != null) {
+            booking.setBookingStatus(status);
+            return customBookingRepository.save(booking);
+        }
+        return null;
+    }
+
+    //Till Here
 
     public CustomBooking createBooking(CustomBooking customBooking) {
         return customBookingRepository.save(customBooking);
