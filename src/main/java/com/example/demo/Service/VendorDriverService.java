@@ -128,4 +128,10 @@ public class VendorDriverService {
 
         return "/uploads/images/" + entityType + "/" + newFileName;
     }
+
+    public VendorDriver updateStatus(int id, String status){
+        VendorDriver driver = this.vendorDriverRepository.findById(id).get();
+        driver.setStatus(status);
+        return vendorDriverRepository.save(driver);
+    }
 }

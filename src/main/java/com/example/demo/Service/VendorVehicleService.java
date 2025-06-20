@@ -1,5 +1,6 @@
 package com.example.demo.Service;
 
+import com.example.demo.Model.VendorDriver;
 import com.example.demo.Model.VendorVehicle;
 import com.example.demo.Repository.VendorVehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,11 @@ public class VendorVehicleService {
         return vendorVehicleRepository.findById(vehicleId);
     }
 
-        public VendorVehicle createVehicle(VendorVehicle vendorVehicle, MultipartFile rCImageFile, MultipartFile vehicleNoImageFile, MultipartFile insuranceImageFile, MultipartFile permitImageFile, MultipartFile authorizationImageFile, MultipartFile cabNoPlateImageFile, MultipartFile cabImageFile, MultipartFile cabFrontImageFile, MultipartFile cabBackImageFile, MultipartFile cabSideImageFile) throws IOException {
+    public VendorVehicle createVehicle(VendorVehicle vendorVehicle, MultipartFile rCImageFile,
+            MultipartFile vehicleNoImageFile, MultipartFile insuranceImageFile, MultipartFile permitImageFile,
+            MultipartFile authorizationImageFile, MultipartFile cabNoPlateImageFile, MultipartFile cabImageFile,
+            MultipartFile cabFrontImageFile, MultipartFile cabBackImageFile, MultipartFile cabSideImageFile)
+            throws IOException {
         if (rCImageFile != null && !rCImageFile.isEmpty()) {
             String imageUrl = saveImage(rCImageFile, "vehicle");
             vendorVehicle.setrCImage(imageUrl);
@@ -76,8 +81,13 @@ public class VendorVehicleService {
         return vendorVehicleRepository.save(vendorVehicle);
     }
 
-    public VendorVehicle updateVehicle(Integer vehicleId, VendorVehicle vehicleDetails, MultipartFile rCImageFile, MultipartFile vehicleNoImageFile, MultipartFile insuranceImageFile, MultipartFile permitImageFile, MultipartFile authorizationImageFile, MultipartFile cabNoPlateImageFile, MultipartFile cabImageFile, MultipartFile cabFrontImageFile, MultipartFile cabBackImageFile, MultipartFile cabSideImageFile) throws IOException {
-        VendorVehicle existingVehicle = vendorVehicleRepository.findById(vehicleId).orElseThrow(() -> new RuntimeException("Vehicle not found"));
+    public VendorVehicle updateVehicle(Integer vehicleId, VendorVehicle vehicleDetails, MultipartFile rCImageFile,
+            MultipartFile vehicleNoImageFile, MultipartFile insuranceImageFile, MultipartFile permitImageFile,
+            MultipartFile authorizationImageFile, MultipartFile cabNoPlateImageFile, MultipartFile cabImageFile,
+            MultipartFile cabFrontImageFile, MultipartFile cabBackImageFile, MultipartFile cabSideImageFile)
+            throws IOException {
+        VendorVehicle existingVehicle = vendorVehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
 
         existingVehicle.setCarName(vehicleDetails.getCarName());
         existingVehicle.setrCNo(vehicleDetails.getrCNo());
@@ -146,5 +156,11 @@ public class VendorVehicleService {
         Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         return "/uploads/images/" + entityType + "/" + newFileName;
+    }
+
+    public VendorVehicle updateStatus(int id, String status) {
+        VendorVehicle vehicle = this.vendorVehicleRepository.findById(id).get();
+        vehicle.setStatus(status);
+        return vendorVehicleRepository.save(vehicle);
     }
 }

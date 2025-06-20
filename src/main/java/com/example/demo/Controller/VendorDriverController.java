@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/vendors/{vendorId}/drivers")
@@ -31,19 +33,22 @@ public class VendorDriverController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createDriver(@PathVariable Long vendorId, @ModelAttribute VendorDriver vendorDriver,
-                                      @RequestParam(value = "driverImageFile", required = false) MultipartFile driverImageFile,
-                                      @RequestParam(value = "driverSelfieFile", required = false) MultipartFile driverSelfieFile,
-                                      @RequestParam(value = "dLnoImageFile", required = false) MultipartFile dLnoImageFile,
-                                      @RequestParam(value = "pvcImageFile", required = false) MultipartFile pvcImageFile,
-                                      @RequestParam(value = "driverDoc1ImageFile", required = false) MultipartFile driverDoc1ImageFile,
-                                      @RequestParam(value = "driverDoc2ImageFile", required = false) MultipartFile driverDoc2ImageFile,
-                                      @RequestParam(value = "driverDoc3ImageFile", required = false) MultipartFile driverDoc3ImageFile) throws IOException {
+            @RequestParam(value = "driverImageFile", required = false) MultipartFile driverImageFile,
+            @RequestParam(value = "driverSelfieFile", required = false) MultipartFile driverSelfieFile,
+            @RequestParam(value = "dLnoImageFile", required = false) MultipartFile dLnoImageFile,
+            @RequestParam(value = "pvcImageFile", required = false) MultipartFile pvcImageFile,
+            @RequestParam(value = "driverDoc1ImageFile", required = false) MultipartFile driverDoc1ImageFile,
+            @RequestParam(value = "driverDoc2ImageFile", required = false) MultipartFile driverDoc2ImageFile,
+            @RequestParam(value = "driverDoc3ImageFile", required = false) MultipartFile driverDoc3ImageFile)
+            throws IOException {
         Vendor vendor = vendorRepository.findById(vendorId).orElse(null);
         if (vendor == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid vendor ID");
         }
         vendorDriver.setVendor(vendor);
-        return ResponseEntity.status(HttpStatus.CREATED).body(vendorDriverService.createDriver(vendorDriver, driverImageFile, driverSelfieFile, dLnoImageFile, pvcImageFile, driverDoc1ImageFile, driverDoc2ImageFile, driverDoc3ImageFile));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(vendorDriverService.createDriver(vendorDriver, driverImageFile, driverSelfieFile, dLnoImageFile,
+                        pvcImageFile, driverDoc1ImageFile, driverDoc2ImageFile, driverDoc3ImageFile));
     }
 
     @GetMapping("/{driverId}")
@@ -54,20 +59,38 @@ public class VendorDriverController {
     }
 
     @PutMapping(value = "/{driverId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<VendorDriver> updateDriver(@PathVariable Integer driverId, @ModelAttribute VendorDriver driverDetails,
-                                                 @RequestParam(value = "driverImageFile", required = false) MultipartFile driverImageFile,
-                                                 @RequestParam(value = "driverSelfieFile", required = false) MultipartFile driverSelfieFile,
-                                                 @RequestParam(value = "dLnoImageFile", required = false) MultipartFile dLnoImageFile,
-                                                 @RequestParam(value = "pvcImageFile", required = false) MultipartFile pvcImageFile,
-                                                 @RequestParam(value = "driverDoc1ImageFile", required = false) MultipartFile driverDoc1ImageFile,
-                                                 @RequestParam(value = "driverDoc2ImageFile", required = false) MultipartFile driverDoc2ImageFile,
-                                                 @RequestParam(value = "driverDoc3ImageFile", required = false) MultipartFile driverDoc3ImageFile) throws IOException {
-        return ResponseEntity.ok(vendorDriverService.updateDriver(driverId, driverDetails, driverImageFile, driverSelfieFile, dLnoImageFile, pvcImageFile, driverDoc1ImageFile, driverDoc2ImageFile, driverDoc3ImageFile));
+    public ResponseEntity<VendorDriver> updateDriver(@PathVariable Integer driverId,
+            @ModelAttribute VendorDriver driverDetails,
+            @RequestParam(value = "driverImageFile", required = false) MultipartFile driverImageFile,
+            @RequestParam(value = "driverSelfieFile", required = false) MultipartFile driverSelfieFile,
+            @RequestParam(value = "dLnoImageFile", required = false) MultipartFile dLnoImageFile,
+            @RequestParam(value = "pvcImageFile", required = false) MultipartFile pvcImageFile,
+            @RequestParam(value = "driverDoc1ImageFile", required = false) MultipartFile driverDoc1ImageFile,
+            @RequestParam(value = "driverDoc2ImageFile", required = false) MultipartFile driverDoc2ImageFile,
+            @RequestParam(value = "driverDoc3ImageFile", required = false) MultipartFile driverDoc3ImageFile)
+            throws IOException {
+        return ResponseEntity
+                .ok(vendorDriverService.updateDriver(driverId, driverDetails, driverImageFile, driverSelfieFile,
+                        dLnoImageFile, pvcImageFile, driverDoc1ImageFile, driverDoc2ImageFile, driverDoc3ImageFile));
     }
 
     @DeleteMapping("/{driverId}")
     public ResponseEntity<Void> deleteDriver(@PathVariable Integer driverId) {
         vendorDriverService.deleteDriver(driverId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<VendorDriver> changeStatus(@PathVariable int id,
+            @RequestBody Map<String, String> requestBody) {
+
+        String status = requestBody.get("status");
+
+        try {
+            VendorDriver updatedOrder = vendorDriverService.updateStatus(id, status);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }

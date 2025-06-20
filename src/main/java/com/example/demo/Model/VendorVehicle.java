@@ -42,6 +42,8 @@ public class VendorVehicle {
 
 	private String cabSideImage;
 
+	private String status;
+
 	@ManyToOne
 	@JoinColumn(name = "vendor_id")
 	@JsonBackReference
@@ -53,11 +55,12 @@ public class VendorVehicle {
 
 	public VendorVehicle(int vendorCabId, String carName, String rCNo, String rCImage, String vehicleNo,
 			String vehicleNoImage, String insuranceImage, String permitImage, String authorizationImage,
-			String cabNoPlateImage, String cabImage, String cabFrontImage, String cabBackImage, String cabOtherDetails,
+			String cabNoPlateImage, String cabImage, String cabFrontImage, String cabBackImage, String cabOtherDetails,String status,
 			String cabSideImage, Vendor vendor) {
 		this.vendorCabId = vendorCabId;
 		this.carName = carName;
 		this.rCNo = rCNo;
+		this.status=status;
 		this.rCImage = rCImage;
 		this.vehicleNo = vehicleNo;
 		this.vehicleNoImage = vehicleNoImage;
@@ -104,6 +107,8 @@ public class VendorVehicle {
 	public void setrCImage(String rCImage) {
 		this.rCImage = rCImage;
 	}
+
+	
 
 	public String getVehicleNo() {
 		return vehicleNo;
@@ -199,6 +204,14 @@ public class VendorVehicle {
 
 	public void setVendor(Vendor vendor) {
 		this.vendor = vendor;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }

@@ -25,6 +25,8 @@ public class VendorDriver {
 
 	private String address;
 
+	private String status;
+	
 	private String driverImage;
 
 	private String driverSelfie;
@@ -65,8 +67,10 @@ public class VendorDriver {
 			String driverImage, String driverSelfie, String dLNo, String pvcNo, String dLnoImage, String pvcImage,
 			String driverDoc1Image, String driverDoc2Image, String driverDoc3Image, String emailId,
 			String driverOtherDetails, String role, String password, Double driverLatitude, Double driverLongitude,
+			String status,
 			Vendor vendor) {
 		this.vendorDriverId = vendorDriverId;
+		this.status = status;
 		this.driverName = driverName;
 		this.contactNo = contactNo;
 		this.altContactNo = altContactNo;
@@ -259,6 +263,14 @@ public class VendorDriver {
 
 	public void setVendor(Vendor vendor) {
 		this.vendor = vendor;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }
