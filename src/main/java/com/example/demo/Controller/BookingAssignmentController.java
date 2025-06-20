@@ -38,9 +38,8 @@ public class BookingAssignmentController {
     @Autowired
     private VendorVehicleRepository vendorVehicleRepository;
 
-    @PostMapping("/masteradmins/{masterAdminId}/custom-bookings/{bookingId}/assign-vendor/{vendorId}")
+    @PostMapping("/custom-bookings/{bookingId}/assign-vendor/{vendorId}")
     public ResponseEntity<CustomBooking> assignVendorToBooking(
-            @PathVariable Long masterAdminId,
             @PathVariable Integer bookingId,
             @PathVariable Long vendorId) {
 
@@ -125,10 +124,9 @@ public class BookingAssignmentController {
         }
     }
 
-    @GetMapping("/masteradmins/{masterAdminId}/custom-bookings")
-    public ResponseEntity<List<CustomBookingWithVendorDTO>> getBookingsByMasterAdminWithVendor(
-            @PathVariable Long masterAdminId) {
-        List<CustomBooking> bookings = customBookingRepository.findByMasterAdminId(masterAdminId);
+    @GetMapping("/custom-bookings-with-vendor")
+    public ResponseEntity<List<CustomBookingWithVendorDTO>> getAllBookingsWithVendor() {
+        List<CustomBooking> bookings = customBookingRepository.findAll();
         List<CustomBookingWithVendorDTO> dtos = bookings.stream().map(CustomBookingWithVendorDTO::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);

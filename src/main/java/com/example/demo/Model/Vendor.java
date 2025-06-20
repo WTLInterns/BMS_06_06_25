@@ -39,6 +39,7 @@ public class Vendor {
     private String aadharPhoto; // path
     private String panPhoto; // path
     private String vendorOtherDetails;
+    private String vendorCompanyLogo;
     private String govtApprovalCertificateUrl;
     private String vendorDocsUrl;
     private String vendorImageUrl;
@@ -76,7 +77,7 @@ public class Vendor {
     public Vendor(Long id, String vendorCompanyName, String contactNo, String alternateMobileNo, String city,
             String vendorEmail, String bankName, String bankAccountNo, String ifscCode, String aadharNo, String panNo,
             String udyogAadharNo, String govtApprovalCertificate, String vendorDocs, String vendorImage,
-            String aadharPhoto, String panPhoto, String vendorOtherDetails, String password,
+            String aadharPhoto, String panPhoto, String vendorOtherDetails, String vendorCompanyLogo, String password,
             List<VendorDriver> vendorDriver, List<VendorVehicle> vendorVehicles, List<CustomBooking> customBookings) {
         this.id = id;
         this.vendorCompanyName = vendorCompanyName;
@@ -96,6 +97,7 @@ public class Vendor {
         this.aadharPhoto = aadharPhoto;
         this.panPhoto = panPhoto;
         this.vendorOtherDetails = vendorOtherDetails;
+        this.vendorCompanyLogo = vendorCompanyLogo;
         this.password = password;
         this.vendorDriver = vendorDriver;
         this.vendorVehicles = vendorVehicles;

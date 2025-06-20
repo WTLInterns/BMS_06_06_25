@@ -25,9 +25,6 @@ public class CustomBookingService {
         return customBookingRepository.findById(bookingId);
     }
 
-    public List<CustomBooking> getBookingsByMasterAdmin(Long masterAdminId) {
-        return customBookingRepository.findByMasterAdminId(masterAdminId);
-    }
 
     public List<CustomBooking> getBookingsByVendor(Long vendorId) {
         return customBookingRepository.findByVendorId(vendorId);
@@ -121,6 +118,8 @@ public class CustomBookingService {
         existingBooking.setCollection(bookingDetails.getCollection());
         existingBooking.setFullName(bookingDetails.getFullName());
         existingBooking.setCustomerEmail(bookingDetails.getCustomerEmail());
+        existingBooking.setCommunicationAddress(bookingDetails.getCommunicationAddress());
+        existingBooking.setAlternativeMobileNo(bookingDetails.getAlternativeMobileNo());
 
         return customBookingRepository.save(existingBooking);
     }

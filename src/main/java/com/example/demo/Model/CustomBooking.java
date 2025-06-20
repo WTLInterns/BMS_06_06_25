@@ -2,13 +2,14 @@ package com.example.demo.Model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
 
 @Entity
 public class CustomBooking {
@@ -34,6 +35,11 @@ public class CustomBooking {
     private int collection;
     private String fullName;
     private String customerEmail;
+    @Column(nullable = true)
+    private String communicationAddress;
+    
+    @Column(nullable = true)
+    private Double alternativeMobileNo;
 
     @ManyToOne
     @JoinColumn(name = "vendor_id")
@@ -61,7 +67,8 @@ public class CustomBooking {
             String bookingType,
             String bookingDetails, String bookingAmount, String customerName, String customerMobileNo,
             String pickupLocation, String dropLocation, String pickUpDate, String pickUpTime, String carType,
-            String returnDate, String tripType, Vendor vendor, int collection, String fullName, String customerEmail) {
+            String returnDate, String tripType, Vendor vendor, int collection, String fullName, String customerEmail,
+            String communicationAddress, double alternativeMobileNo) {
         this.bookingId = bookingId;
         this.bookingDate = bookingDate;
         this.bookingTime = bookingTime;
@@ -82,6 +89,8 @@ public class CustomBooking {
         this.collection = collection;
         this.fullName = fullName;
         this.customerEmail = customerEmail;
+        this.communicationAddress = communicationAddress;
+        this.alternativeMobileNo = alternativeMobileNo;
     }
 
     public int getBookingId() {
@@ -268,4 +277,19 @@ public class CustomBooking {
         this.customerEmail = customerEmail;
     }
 
+    public String getCommunicationAddress() {
+        return communicationAddress;
+    }
+
+    public void setCommunicationAddress(String communicationAddress) {
+        this.communicationAddress = communicationAddress;
+    }
+
+    public Double getAlternativeMobileNo() {
+        return alternativeMobileNo;
+    }
+
+    public void setAlternativeMobileNo(Double alternativeMobileNo) {
+        this.alternativeMobileNo = alternativeMobileNo;
+    }
 }

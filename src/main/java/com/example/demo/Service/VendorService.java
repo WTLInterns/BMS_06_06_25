@@ -44,7 +44,7 @@ public class VendorService {
         }
     }
 
-    public Vendor createVendor(Vendor vendor, MultipartFile vendorImage, MultipartFile gstNoImage, MultipartFile govtApprovalCertificate, MultipartFile vendorDocs, MultipartFile aadharPhoto, MultipartFile panPhoto) throws IOException {
+    public Vendor createVendor(Vendor vendor, MultipartFile vendorImage, MultipartFile gstNoImage, MultipartFile govtApprovalCertificate, MultipartFile vendorDocs, MultipartFile aadharPhoto, MultipartFile panPhoto, MultipartFile vendorCompanyLogo) throws IOException {
         String uploadDir = System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "static" + File.separator + "uploads" + File.separator + "images" + File.separator + "vendor" + File.separator;
         File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
@@ -90,6 +90,12 @@ public class VendorService {
             vendor.setPanPhoto("/uploads/images/vendor/" + fileName);
             vendor.setPanPhotoUrl("/uploads/images/vendor/" + fileName);
         }
+        if (vendorCompanyLogo != null && !vendorCompanyLogo.isEmpty()) {
+            String fileName = UUID.randomUUID().toString() + "_" + vendorCompanyLogo.getOriginalFilename();
+            File dest = new File(uploadDir + fileName);
+            vendorCompanyLogo.transferTo(dest);
+            vendor.setVendorCompanyLogo("/uploads/images/vendor/" + fileName);
+        }
         return vendorRepository.save(vendor);
     }
 
@@ -101,7 +107,7 @@ public class VendorService {
         return vendorRepository.findById(id);
     }
 
-    public Vendor updateVendor(Long id, Vendor vendorDetails, MultipartFile vendorImage, MultipartFile gstNoImage, MultipartFile govtApprovalCertificate, MultipartFile vendorDocs, MultipartFile aadharPhoto, MultipartFile panPhoto) throws IOException {
+    public Vendor updateVendor(Long id, Vendor vendorDetails, MultipartFile vendorImage, MultipartFile gstNoImage, MultipartFile govtApprovalCertificate, MultipartFile vendorDocs, MultipartFile aadharPhoto, MultipartFile panPhoto, MultipartFile vendorCompanyLogo) throws IOException {
         Vendor vendor = vendorRepository.findById(id).orElseThrow(() -> new RuntimeException("Vendor not found"));
         vendor.setVendorFullName(vendorDetails.getVendorFullName());
         vendor.setVendorCompanyName(vendorDetails.getVendorCompanyName());
@@ -129,6 +135,7 @@ public class VendorService {
         vendor.setPanPhotoUrl(vendorDetails.getPanPhotoUrl());
         vendor.setGstNoImageUrl(vendorDetails.getGstNoImageUrl());
         vendor.setStatus(vendorDetails.getStatus());
+        vendor.setVendorCompanyLogo(vendorDetails.getVendorCompanyLogo());
         // Image/file updates
         if (vendorImage != null && !vendorImage.isEmpty()) {
             String fileName = UUID.randomUUID().toString() + "_" + vendorImage.getOriginalFilename();
@@ -189,6 +196,15 @@ public class VendorService {
             panPhoto.transferTo(dest);
             vendor.setPanPhoto("/uploads/images/vendor/" + fileName);
             vendor.setPanPhotoUrl("/uploads/images/vendor/" + fileName);
+        }
+        if (vendorCompanyLogo != null && !vendorCompanyLogo.isEmpty()) {
+            String fileName = UUID.randomUUID().toString() + "_" + vendorCompanyLogo.getOriginalFilename();
+            String uploadDir = System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "static" + File.separator + "uploads" + File.separator + "images" + File.separator + "vendor" + File.separator;
+            File dir = new File(uploadDir);
+            if (!dir.exists()) dir.mkdirs();
+            File dest = new File(uploadDir + fileName);
+            vendorCompanyLogo.transferTo(dest);
+            vendor.setVendorCompanyLogo("/uploads/images/vendor/" + fileName);
         }
         return vendorRepository.save(vendor);
     }

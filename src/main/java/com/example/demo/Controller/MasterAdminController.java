@@ -75,6 +75,7 @@ public class MasterAdminController {
             vendor.setGstNo(vendorForm.getGstNo());
             vendor.setUdyogAadharNo(vendorForm.getUdyogAadharNo());
             vendor.setVendorOtherDetails(vendorForm.getVendorOtherDetails());
+            vendor.setVendorCompanyLogo(vendorForm.getVendorCompanyLogo());
             vendor.setStatus(vendorForm.getStatus());
             // Set password: if not provided, use contactNo
             String password = vendorForm.getPassword();
@@ -89,13 +90,13 @@ public class MasterAdminController {
             }
             vendor.setMasterAdmin(masterAdmin);
             Vendor saved = vendorService.createVendor(vendor, vendorImage, gstNoImage, govtApprovalCertificate,
-                    vendorDocs, aadharPhoto, panPhoto);
+                     vendorDocs, aadharPhoto, panPhoto, vendorCompanyLogo);
 
-            // Compose response as { vendor: ..., masterAdmin: ... }
-            java.util.Map<String, Object> response = new java.util.HashMap<>();
-            response.put("vendor", saved);
-            response.put("masterAdmin", masterAdmin);
-            return ResponseEntity.ok(response);
+              // Compose response as { vendor: ..., masterAdmin: ... }
+              java.util.Map<String, Object> response = new java.util.HashMap<>();
+              response.put("vendor", saved);
+              response.put("masterAdmin", masterAdmin);
+              return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
@@ -110,7 +111,8 @@ public class MasterAdminController {
             @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
             @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
             @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
-            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto) {
+            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto,
+            @RequestParam(value = "vendorCompanyLogo", required = false) MultipartFile vendorCompanyLogo) {
         try {
             // 1. Find the existing vendor by email from the form
             Vendor vendor = vendorService.findByEmail(vendorForm.getVendorEmail());
@@ -139,7 +141,7 @@ public class MasterAdminController {
 
             // 5. Call the update service method, passing the files
             vendorService.updateVendor(vendor.getId(), vendor, vendorImage, gstNoImage, govtApprovalCertificate,
-                    vendorDocs, aadharPhoto, panPhoto);
+                    vendorDocs, aadharPhoto, panPhoto, vendorCompanyLogo);
 
             return ResponseEntity.ok("Onboarding completed successfully. We will contact you shortly.");
 
@@ -167,7 +169,8 @@ public class MasterAdminController {
             @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
             @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
             @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
-            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto) {
+            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto,
+            @RequestParam(value = "vendorCompanyLogo", required = false) MultipartFile vendorCompanyLogo) {
         try {
             MasterAdmin masterAdmin = masterAdminRepository.findById(masterAdminId).orElse(null);
             if (masterAdmin == null) {
@@ -193,6 +196,7 @@ public class MasterAdminController {
             vendor.setUdyogAadharNo(vendorForm.getUdyogAadharNo());
             vendor.setVendorOtherDetails(vendorForm.getVendorOtherDetails());
             vendor.setStatus(vendorForm.getStatus());
+            vendor.setVendorCompanyLogo(vendorForm.getVendorCompanyLogo());
             if (vendorForm.getPassword() != null && !vendorForm.getPassword().isEmpty()) {
                 vendor.setPassword(vendorForm.getPassword());
             }
@@ -233,7 +237,7 @@ public class MasterAdminController {
             vendor.setStatus(vendorForm.getStatus());
             vendor.setPassword(vendorForm.getPassword() != null ? vendorForm.getPassword() : vendorForm.getContactNo());
             vendor.setMasterAdmin(masterAdmin);
-            Vendor saved = vendorService.createVendor(vendor, null, null, null, null, null, null);
+            Vendor saved = vendorService.createVendor(vendor, null, null, null, null, null, null, null);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
@@ -262,7 +266,7 @@ public class MasterAdminController {
             vendor.setStatus("Invited");
             vendor.setPassword(java.util.UUID.randomUUID().toString().substring(0, 8)); // random password
             vendor.setRole("Vendor");
-            Vendor savedVendor = vendorService.createVendor(vendor, null, null, null, null, null, null);
+            Vendor savedVendor = vendorService.createVendor(vendor, null, null, null, null, null, null, null);
 
             // 4. Compose invitation message
             String message = "<html><body>"

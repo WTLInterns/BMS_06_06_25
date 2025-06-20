@@ -15,6 +15,7 @@ public class VendorForm {
     private String gstNo;
     private String udyogAadharNo;
     private String vendorOtherDetails;
+    private String vendorCompanyLogo;
     private String status;
     private String password;
     private Long masterAdminId;
@@ -54,4 +55,6 @@ public class VendorForm {
     public void setPassword(String password) { this.password = password; }
     public Long getMasterAdminId() { return masterAdminId; }
     public void setMasterAdminId(Long masterAdminId) { this.masterAdminId = masterAdminId; }
+    public String getVendorCompanyLogo() { return vendorCompanyLogo; }
+    public void setVendorCompanyLogo(String vendorCompanyLogo) { this.vendorCompanyLogo = vendorCompanyLogo; }
 }
