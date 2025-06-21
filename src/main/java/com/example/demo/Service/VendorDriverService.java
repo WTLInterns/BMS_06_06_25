@@ -1,15 +1,6 @@
 package com.example.demo.Service;
 
-import com.example.demo.Model.CustomBooking;
-import com.example.demo.Model.VendorDriver;
-import com.example.demo.Repository.CustomBookingRepository;
-import com.example.demo.Repository.VendorDriverRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +8,15 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.demo.Model.CustomBooking;
+import com.example.demo.Model.VendorDriver;
+import com.example.demo.Repository.CustomBookingRepository;
+import com.example.demo.Repository.VendorDriverRepository;
 
 @Service
 public class VendorDriverService {
@@ -147,34 +147,24 @@ public class VendorDriverService {
         return vendorDriverRepository.save(driver);
     }
 
-    public CustomBooking assignVendorDriverToBooking(int bookingId, int vendorDriverId) {
-        // Step 1: Fetch the existing booking from the database using the bookingId
-        Optional<CustomBooking> bookingOptional = this.customBookingRepository.findById(bookingId);
-
-        if (bookingOptional.isPresent()) {
-            CustomBooking booking = bookingOptional.get(); // Get the existing booking
-
-            // Step 2: Fetch the vendor by vendorId
-            Optional<VendorDriver> vendorOptional = this.vendorDriverRepository.findById(vendorDriverId);
-
-            if (vendorOptional.isPresent()) {
-                VendorDriver vendor = vendorOptional.get(); // Get the existing vendor
-
-                // Step 3: Assign the vendor to the booking
-                booking.setDriver(vendor);
-
-                // Step 4: Save the updated booking (the vendor is now assigned to this specific
-                // booking row)
-                return this.customBookingRepository.save(booking);
-            } else {
-                // Vendor not found, returning null or can log the error if necessary
-                System.out.println("Vendor with ID " + vendorDriverId + " not found.");
-                return null;
-            }
-        } else {
-            // Booking not found, returning null or can log the error if necessary
-            System.out.println("Booking with ID " + bookingId + " not found.");
-            return null;
+    public CustomBooking assignVendorDriverToBooking(Long vendorId, int bookingId, int vendorDriverId) {
+        Optional<CustomBooking> bookingOptional = customBookingRepository.findById(bookingId);
+        if (bookingOptional.isEmpty()) {
+            throw new RuntimeException("Booking not found");
         }
+        CustomBooking booking = bookingOptional.get();
+        if (booking.getVendor() == null || !booking.getVendor().getId().equals(vendorId)) {
+            throw new RuntimeException("Booking does not belong to the specified vendor");
+        }
+        Optional<VendorDriver> driverOptional = vendorDriverRepository.findById(vendorDriverId);
+        if (driverOptional.isEmpty()) {
+            throw new RuntimeException("Driver not found");
+        }
+        VendorDriver driver = driverOptional.get();
+        if (!driver.getVendor().getId().equals(vendorId)) {
+            throw new RuntimeException("Driver does not belong to the specified vendor");
+        }
+        booking.setDriver(driver);
+        return customBookingRepository.save(booking);
     }
 }

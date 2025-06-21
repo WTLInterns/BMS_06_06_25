@@ -131,4 +131,41 @@ public class BookingAssignmentController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
+
+    @GetMapping("/{bookingId}/details")
+    public ResponseEntity<BookingDetailsDTO> getBookingDetails(@PathVariable Integer bookingId) {
+        CustomBooking booking = customBookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(new BookingDetailsDTO(booking));
+    }
+
+    // DTO for booking details
+    public static class BookingDetailsDTO {
+        private Integer bookingId;
+        private Long vendorId;
+        private String vendorName;
+        private Integer driverId;
+        private String driverName;
+        private Integer vehicleId;
+        private String vehicleName;
+        public BookingDetailsDTO(CustomBooking booking) {
+            this.bookingId = booking.getBookingId();
+            this.vendorId = booking.getVendor() != null ? booking.getVendor().getId() : null;
+            this.vendorName = booking.getVendor() != null ? booking.getVendor().getVendorCompanyName() : null;
+            this.driverId = booking.getDriver() != null ? booking.getDriver().getDriverId() : null;
+            this.driverName = booking.getDriver() != null ? booking.getDriver().getDriverName() : null;
+            this.vehicleId = booking.getVehicle() != null ? booking.getVehicle().getVehicleId() : null;
+            this.vehicleName = booking.getVehicle() != null ? booking.getVehicle().getCarName() : null;
+        }
+        // getters
+        public Integer getBookingId() { return bookingId; }
+        public Long getVendorId() { return vendorId; }
+        public String getVendorName() { return vendorName; }
+        public Integer getDriverId() { return driverId; }
+        public String getDriverName() { return driverName; }
+        public Integer getVehicleId() { return vehicleId; }
+        public String getVehicleName() { return vehicleName; }
+    }
 }

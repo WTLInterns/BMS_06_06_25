@@ -1,16 +1,6 @@
 package com.example.demo.Service;
 
-import com.example.demo.Model.CustomBooking;
-
-import com.example.demo.Model.VendorVehicle;
-import com.example.demo.Repository.CustomBookingRepository;
-import com.example.demo.Repository.VendorVehicleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,6 +8,15 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.demo.Model.CustomBooking;
+import com.example.demo.Model.VendorVehicle;
+import com.example.demo.Repository.CustomBookingRepository;
+import com.example.demo.Repository.VendorVehicleRepository;
 
 @Service
 public class VendorVehicleService {
@@ -169,20 +168,23 @@ public class VendorVehicleService {
         return vendorVehicleRepository.save(vehicle);
     }
 
-    public CustomBooking assignVendorCabToBooking(int bookingId, int vendorCabId) {
+    public CustomBooking assignVendorCabToBooking(Long vendorId, int bookingId, int vendorCabId) {
         Optional<CustomBooking> bookingOptional = customBookingRepository.findById(bookingId);
         if (bookingOptional.isEmpty()) {
             throw new RuntimeException("Booking not found");
         }
-
+        CustomBooking booking = bookingOptional.get();
+        if (booking.getVendor() == null || !booking.getVendor().getId().equals(vendorId)) {
+            throw new RuntimeException("Booking does not belong to the specified vendor");
+        }
         Optional<VendorVehicle> vehicleOptional = vendorVehicleRepository.findById(vendorCabId);
         if (vehicleOptional.isEmpty()) {
             throw new RuntimeException("Vehicle not found");
         }
-
-        CustomBooking booking = bookingOptional.get();
         VendorVehicle vehicle = vehicleOptional.get();
-
+        if (!vehicle.getVendor().getId().equals(vendorId)) {
+            throw new RuntimeException("Vehicle does not belong to the specified vendor");
+        }
         booking.setVehicle(vehicle);
         return customBookingRepository.save(booking);
     }

@@ -1,21 +1,31 @@
 package com.example.demo.Controller;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.demo.Model.CustomBooking;
 import com.example.demo.Model.Vendor;
 import com.example.demo.Model.VendorDriver;
 import com.example.demo.Repository.VendorRepository;
 import com.example.demo.Service.VendorDriverService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/vendors/{vendorId}/drivers")
@@ -95,86 +105,20 @@ public class VendorDriverController {
         }
     }
 
-    
-        @PutMapping("/{bookingId}/assignVendorDriver/{vendorDriverId}")
-    public ResponseEntity<CustomBooking> assignVendorDriverToBooking(
-            @PathVariable int bookingId,
-            @PathVariable int vendorDriverId) {
-
-        // Call the service method to assign vendor
-        CustomBooking updatedBooking = vendorDriverService.assignVendorDriverToBooking(bookingId, vendorDriverId);
-
-        if (updatedBooking == null) {
-            // If the booking or vendor was not found, return a 404 Not Found
-            return ResponseEntity.notFound().build();
+    @PutMapping("/assigndriver/{driverId}/{bookingId}")
+    public ResponseEntity<CustomBooking> assignDriverToBooking(
+            @PathVariable Long vendorId,
+            @PathVariable int driverId,
+            @PathVariable int bookingId) {
+        try {
+            CustomBooking updatedBooking = vendorDriverService.assignVendorDriverToBooking(vendorId, bookingId, driverId);
+            if (updatedBooking == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(updatedBooking);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
-
-        // if (updatedBooking.getVendor() == null || updatedBooking.getVendorCab() == null) {
-        //     System.out.println("Vendor is not assigned");
-        // } else {
-        //     String subject = "Booking Assign From Your Vendor  - " + updatedBooking.getBookid();
-        //     String message = "<!DOCTYPE html>"
-        //             + "<html lang='en'>"
-        //             + "<head>"
-        //             + "<meta charset='UTF-8'>"
-        //             + "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
-        //             + "<title>Booking Confirmation</title>"
-        //             + "</head>"
-        //             + "<body style='font-family: Arial, sans-serif; background-color: #f7f7f7; margin: 0; padding: 0;'>"
-        //             + "<div style='max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); overflow: hidden;'>"
-        //             + "<div style='background-color: #007BFF; color: #ffffff; padding: 20px; text-align: center;'>"
-        //             + "<h1 style='margin: 0; font-size: 24px; font-weight: bold;'>Booking Confirmation</h1>"
-        //             + "</div>"
-        //             + "<div style='padding: 20px;'>"
-        //             + "<h3 style='color: #007BFF; font-size: 20px; margin-bottom: 20px;'>Hello "
-        //             + updatedBooking.getName() + ",</h3>"
-        //             + "<p style='font-size: 16px; line-height: 1.5; color: #333333; margin-bottom: 20px;'>Your booking has been confirmed. Below are the details of your booking:</p>"
-        //             + "<div style='margin-top: 20px;'>"
-        //             + "<ul style='list-style-type: none; padding: 0;'>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Booking ID:</strong> "
-        //             + updatedBooking.getBookid() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Pickup Location:</strong> "
-        //             + updatedBooking.getUserPickup() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Drop Location:</strong> "
-        //             + updatedBooking.getUserDrop() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Trip Type:</strong> "
-        //             + updatedBooking.getTripType() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Date:</strong> "
-        //             + updatedBooking.getDate() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Time:</strong> "
-        //             + updatedBooking.getTime() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Amount Paid:</strong> ₹"
-        //             + updatedBooking.getAmount() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Cab Name:</strong> "
-        //             + updatedBooking.getVendorCab().getCarName() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Vehicle No:</strong> "
-        //             + updatedBooking.getVendorCab().getVehicleNo() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Driver Name:</strong> "
-        //             + updatedBooking.getVendorDriver().getDriverName() + "</li>"
-        //             + "<li style='margin-bottom: 10px; font-size: 14px; color: #555555;'><strong style='color: #007BFF;'>Driver Contact:</strong> "
-        //             + updatedBooking.getVendorDriver().getContactNo() + "</li>"
-        //             + "</ul>"
-        //             + "</div>"
-        //             + "<p style='font-size: 16px; line-height: 1.5; color: #333333; margin-top: 20px;'>Thank you for choosing us! We wish you a safe and pleasant journey.</p>"
-        //             + "</div>"
-        //             + "<div style='text-align: center; padding: 20px; background-color: #f1f1f1; color: #777777; font-size: 14px;'>"
-        //             + "<p style='margin: 0;'>If you have any questions, feel free to contact us at <a href='mailto:support@example.com' style='color: #007BFF; text-decoration: none;'>support@example.com</a>.</p>"
-        //             + "<img src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjc1OGk0ZGVqNHFseDRrM3FvOW0xYnVyenJkcmQ2OXNsODE0djUzZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oKIPhUfA1h2U2Koko/giphy.gif' alt='Namaskar' style='width: 100px; height: auto; margin-top: 10px;'>"
-        //             + "</div>"
-        //             + "</div>"
-        //             + "</body>"
-        //             + "</html>";
-
-        //     // boolean emailSent = emailService.sendEmail(message, subject, updatedBooking.getEmail());
-
-        //     // if (emailSent) {
-        //     //     System.out.println("Booking confirmation email sent successfully.");
-        //     // } else {
-        //     //     System.out.println("Failed to send booking confirmation email.");
-        //     // }
-        // }
-
-        return ResponseEntity.ok(updatedBooking);
     }
 
 
