@@ -58,7 +58,8 @@ public class MasterAdminController {
             @RequestParam(value = "govtApprovalCertificate", required = false) MultipartFile govtApprovalCertificate,
             @RequestParam(value = "vendorDocs", required = false) MultipartFile vendorDocs,
             @RequestParam(value = "aadharPhoto", required = false) MultipartFile aadharPhoto,
-            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto) {
+            @RequestParam(value = "panPhoto", required = false) MultipartFile panPhoto,
+            @RequestParam(value = "vendorCompanyLogo", required = false) MultipartFile vendorCompanyLogo) {
         try {
             Vendor vendor = new Vendor();
             vendor.setVendorFullName(vendorForm.getVendorFullName());
@@ -90,13 +91,13 @@ public class MasterAdminController {
             }
             vendor.setMasterAdmin(masterAdmin);
             Vendor saved = vendorService.createVendor(vendor, vendorImage, gstNoImage, govtApprovalCertificate,
-                     vendorDocs, aadharPhoto, panPhoto, vendorCompanyLogo);
+                    vendorDocs, aadharPhoto, panPhoto, vendorCompanyLogo);
 
-              // Compose response as { vendor: ..., masterAdmin: ... }
-              java.util.Map<String, Object> response = new java.util.HashMap<>();
-              response.put("vendor", saved);
-              response.put("masterAdmin", masterAdmin);
-              return ResponseEntity.ok(response);
+            // Compose response as { vendor: ..., masterAdmin: ... }
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("vendor", saved);
+            response.put("masterAdmin", masterAdmin);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
@@ -203,7 +204,7 @@ public class MasterAdminController {
             // else, keep the existing password
             vendor.setMasterAdmin(masterAdmin);
             Vendor updated = vendorService.updateVendor(vendorId, vendor, vendorImage, gstNoImage,
-                    govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto);
+                    govtApprovalCertificate, vendorDocs, aadharPhoto, panPhoto, vendorCompanyLogo);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
