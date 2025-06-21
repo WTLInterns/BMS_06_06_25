@@ -63,29 +63,36 @@ public class CustomBookingController {
         return ResponseEntity.ok(bookings);
     }
 
-    @PostMapping
-    public ResponseEntity<CustomBooking> createBooking(@RequestBody CustomBooking customBooking) {
-        CustomBooking saved = customBookingService.createBooking(customBooking);
+    // @PostMapping("/bookings")
+    // public ResponseEntity<CustomBooking> postBooking(@RequestBody CustomBooking
+    // customBooking) {
+    // return ResponseEntity.status(HttpStatus.CREATED).build();
+    // }
+
+    @PostMapping("/vendor/{vendorId}/bookings")
+    public ResponseEntity<CustomBooking> createBooking(@PathVariable Long vendorId,
+            @RequestBody CustomBooking customBooking) {
+        CustomBooking saved = customBookingService.createBooking(vendorId, customBooking);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    @GetMapping("/{bookingId}")
-    public ResponseEntity<CustomBooking> getBookingById(@PathVariable Integer bookingId) {
-        return customBookingService.getBookingById(bookingId)
+    @GetMapping("/vendor/{vendorId}/{bookingId}")
+    public ResponseEntity<CustomBooking> getBookingById(@PathVariable Long vendorId, @PathVariable Integer bookingId) {
+        return customBookingService.getBookingById(vendorId, bookingId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{bookingId}")
-    public ResponseEntity<CustomBooking> updateBooking(@PathVariable Integer bookingId,
+    @PutMapping("/vendor/{vendorId}/{bookingId}")
+    public ResponseEntity<CustomBooking> updateBooking(@PathVariable Long vendorId, @PathVariable Integer bookingId,
             @RequestBody CustomBooking bookingDetails) {
-        CustomBooking updated = customBookingService.updateBooking(bookingId, bookingDetails);
+        CustomBooking updated = customBookingService.updateBooking(vendorId, bookingId, bookingDetails);
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{bookingId}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable Integer bookingId) {
-        customBookingService.deleteBooking(bookingId);
+    @DeleteMapping("/vendor/{vendorId}/{bookingId}")
+    public ResponseEntity<Void> deleteBooking(@PathVariable Long vendorId, @PathVariable Integer bookingId) {
+        customBookingService.deleteBooking(vendorId, bookingId);
         return ResponseEntity.noContent().build();
     }
 
@@ -94,8 +101,8 @@ public class CustomBookingController {
             @PathVariable Long vendorId,
             @PathVariable String customerEmail,
             @PathVariable Integer bookingId) {
-        
-        Optional<CustomBooking> bookingOpt = customBookingService.getBookingById(bookingId);
+
+        Optional<CustomBooking> bookingOpt = customBookingService.getBookingById(vendorId, bookingId);
         if (!bookingOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -103,39 +110,39 @@ public class CustomBookingController {
         CustomBooking booking = bookingOpt.get();
         String subject = "Your Booking Details";
         String message = String.format("""
-            <h2>Booking Details</h2>
-            <p>Booking ID: %d</p>
-            <p>Booking Date: %s</p>
-            <p>Booking Time: %s</p>
-            <p>Booking Amount: %s</p>
-            <p>Customer Name: %s</p>
-            <p>Customer Mobile: %s</p>
-            <p>Pickup Location: %s</p>
-            <p>Drop Location: %s</p>
-            <p>Pickup Date: %s</p>
-            <p>Pickup Time: %s</p>
-            <p>Return Date: %s</p>
-            <h3>Vehicle Details</h3>
-            <p>Driver Name: %s</p>
-            <p>Contact No: %s</p>
-            <p>Car Name: %s</p>
-            <p>Vehicle No: %s</p>
-            """,
-            booking.getBookingId(),
-            booking.getBookingDate(),
-            booking.getBookingTime(),
-            booking.getBookingAmount(),
-            booking.getCustomerName(),
-            booking.getCustomerMobileNo(),
-            booking.getPickupLocation(),
-            booking.getDropLocation(),
-            booking.getPickUpDate(),
-            booking.getPickUpTime(),
-            booking.getReturnDate(),
-            booking.getDriver() != null ? booking.getDriver().getDriverName() : "",
-            booking.getDriver() != null ? booking.getDriver().getContactNo() : "",
-            booking.getVehicle() != null ? booking.getVehicle().getCarName() : "",
-            booking.getVehicle() != null ? booking.getVehicle().getVehicleNo() : "");
+                <h2>Booking Details</h2>
+                <p>Booking ID: %d</p>
+                <p>Booking Date: %s</p>
+                <p>Booking Time: %s</p>
+                <p>Booking Amount: %s</p>
+                <p>Customer Name: %s</p>
+                <p>Customer Mobile: %s</p>
+                <p>Pickup Location: %s</p>
+                <p>Drop Location: %s</p>
+                <p>Pickup Date: %s</p>
+                <p>Pickup Time: %s</p>
+                <p>Return Date: %s</p>
+                <h3>Vehicle Details</h3>
+                <p>Driver Name: %s</p>
+                <p>Contact No: %s</p>
+                <p>Car Name: %s</p>
+                <p>Vehicle No: %s</p>
+                """,
+                booking.getBookingId(),
+                booking.getBookingDate(),
+                booking.getBookingTime(),
+                booking.getBookingAmount(),
+                booking.getCustomerName(),
+                booking.getCustomerMobileNo(),
+                booking.getPickupLocation(),
+                booking.getDropLocation(),
+                booking.getPickUpDate(),
+                booking.getPickUpTime(),
+                booking.getReturnDate(),
+                booking.getDriver() != null ? booking.getDriver().getDriverName() : "",
+                booking.getDriver() != null ? booking.getDriver().getContactNo() : "",
+                booking.getVehicle() != null ? booking.getVehicle().getCarName() : "",
+                booking.getVehicle() != null ? booking.getVehicle().getVehicleNo() : "");
 
         boolean sent = emailService.sendHtmlEmail(message, subject, customerEmail);
         if (sent) {
@@ -151,8 +158,8 @@ public class CustomBookingController {
             @PathVariable Long vendorId,
             @PathVariable String driverEmail,
             @PathVariable Integer bookingId) {
-        
-        Optional<CustomBooking> bookingOpt = customBookingService.getBookingById(bookingId);
+
+        Optional<CustomBooking> bookingOpt = customBookingService.getBookingById(vendorId, bookingId);
         if (!bookingOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -160,30 +167,30 @@ public class CustomBookingController {
         CustomBooking booking = bookingOpt.get();
         String subject = "New Booking Assignment";
         String message = String.format("""
-            <h2>Customer Booking Details</h2>
-            <p>Booking ID: %d</p>
-            <p>Booking Date: %s</p>
-            <p>Booking Time: %s</p>
-            <p>Booking Amount: %s</p>
-            <p>Customer Name: %s</p>
-            <p>Customer Mobile: %s</p>
-            <p>Pickup Location: %s</p>
-            <p>Drop Location: %s</p>
-            <p>Pickup Date: %s</p>
-            <p>Pickup Time: %s</p>
-            <p>Return Date: %s</p>
-            """,
-            booking.getBookingId(),
-            booking.getBookingDate(),
-            booking.getBookingTime(),
-            booking.getBookingAmount(),
-            booking.getCustomerName(),
-            booking.getCustomerMobileNo(),
-            booking.getPickupLocation(),
-            booking.getDropLocation(),
-            booking.getPickUpDate(),
-            booking.getPickUpTime(),
-            booking.getReturnDate());
+                <h2>Customer Booking Details</h2>
+                <p>Booking ID: %d</p>
+                <p>Booking Date: %s</p>
+                <p>Booking Time: %s</p>
+                <p>Booking Amount: %s</p>
+                <p>Customer Name: %s</p>
+                <p>Customer Mobile: %s</p>
+                <p>Pickup Location: %s</p>
+                <p>Drop Location: %s</p>
+                <p>Pickup Date: %s</p>
+                <p>Pickup Time: %s</p>
+                <p>Return Date: %s</p>
+                """,
+                booking.getBookingId(),
+                booking.getBookingDate(),
+                booking.getBookingTime(),
+                booking.getBookingAmount(),
+                booking.getCustomerName(),
+                booking.getCustomerMobileNo(),
+                booking.getPickupLocation(),
+                booking.getDropLocation(),
+                booking.getPickUpDate(),
+                booking.getPickUpTime(),
+                booking.getReturnDate());
 
         boolean sent = emailService.sendHtmlEmail(message, subject, driverEmail);
         if (sent) {

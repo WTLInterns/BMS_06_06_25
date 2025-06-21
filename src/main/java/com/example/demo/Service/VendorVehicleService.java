@@ -1,14 +1,16 @@
 package com.example.demo.Service;
 
-import com.example.demo.Model.VendorDriver;
+import com.example.demo.Model.CustomBooking;
+
 import com.example.demo.Model.VendorVehicle;
+import com.example.demo.Repository.CustomBookingRepository;
 import com.example.demo.Repository.VendorVehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +26,9 @@ public class VendorVehicleService {
 
     @Autowired
     private VendorVehicleRepository vendorVehicleRepository;
+
+    @Autowired
+    private CustomBookingRepository customBookingRepository;
 
     public List<VendorVehicle> getVehiclesByVendor(Long vendorId) {
         return vendorVehicleRepository.findByVendorId(vendorId);
@@ -162,5 +167,23 @@ public class VendorVehicleService {
         VendorVehicle vehicle = this.vendorVehicleRepository.findById(id).get();
         vehicle.setStatus(status);
         return vendorVehicleRepository.save(vehicle);
+    }
+
+    public CustomBooking assignVendorCabToBooking(int bookingId, int vendorCabId) {
+        Optional<CustomBooking> bookingOptional = customBookingRepository.findById(bookingId);
+        if (bookingOptional.isEmpty()) {
+            throw new RuntimeException("Booking not found");
+        }
+
+        Optional<VendorVehicle> vehicleOptional = vendorVehicleRepository.findById(vendorCabId);
+        if (vehicleOptional.isEmpty()) {
+            throw new RuntimeException("Vehicle not found");
+        }
+
+        CustomBooking booking = bookingOptional.get();
+        VendorVehicle vehicle = vehicleOptional.get();
+
+        booking.setVehicle(vehicle);
+        return customBookingRepository.save(booking);
     }
 }

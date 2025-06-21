@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.example.demo.Model.Vendor;
 
 @Service
 public class CustomBookingService {
@@ -21,8 +22,9 @@ public class CustomBookingService {
         return customBookingRepository.findAll();
     }
 
-    public Optional<CustomBooking> getBookingById(Integer bookingId) {
-        return customBookingRepository.findById(bookingId);
+    public Optional<CustomBooking> getBookingById(Long vendorId, Integer bookingId) {
+        return customBookingRepository.findById(bookingId)
+                .filter(booking -> booking.getVendor() != null && vendorId.equals(booking.getVendor().getId()));
     }
 
 
@@ -90,13 +92,20 @@ public class CustomBookingService {
 
     //Till Here
 
-    public CustomBooking createBooking(CustomBooking customBooking) {
+    public CustomBooking createBooking(Long vendorId, CustomBooking customBooking) {
+        Vendor vendor = new Vendor();
+        vendor.setId(vendorId);
+        customBooking.setVendor(vendor);
         return customBookingRepository.save(customBooking);
     }
 
-    public CustomBooking updateBooking(Integer bookingId, CustomBooking bookingDetails) {
+    public CustomBooking updateBooking(Long vendorId, Integer bookingId, CustomBooking bookingDetails) {
         CustomBooking existingBooking = customBookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (existingBooking.getVendor() == null || !vendorId.equals(existingBooking.getVendor().getId())) {
+            throw new RuntimeException("Booking does not belong to this vendor.");
+        }
 
         existingBooking.setBookingDate(bookingDetails.getBookingDate());
         existingBooking.setBookingTime(bookingDetails.getBookingTime());
@@ -124,7 +133,12 @@ public class CustomBookingService {
         return customBookingRepository.save(existingBooking);
     }
 
-    public void deleteBooking(Integer bookingId) {
-        customBookingRepository.deleteById(bookingId);
+    public void deleteBooking(Long vendorId, Integer bookingId) {
+        CustomBooking booking = customBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        if (booking.getVendor() == null || !vendorId.equals(booking.getVendor().getId())) {
+            throw new RuntimeException("Booking does not belong to this vendor.");
+        }
+        customBookingRepository.delete(booking);
     }
 }

@@ -1,6 +1,8 @@
 package com.example.demo.Service;
 
+import com.example.demo.Model.CustomBooking;
 import com.example.demo.Model.VendorDriver;
+import com.example.demo.Repository.CustomBookingRepository;
 import com.example.demo.Repository.VendorDriverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,9 @@ public class VendorDriverService {
     @Autowired
     private VendorDriverRepository vendorDriverRepository;
 
+    @Autowired
+    private CustomBookingRepository customBookingRepository;
+
     public List<VendorDriver> getDriversByVendor(Long vendorId) {
         return vendorDriverRepository.findByVendorId(vendorId);
     }
@@ -32,7 +37,10 @@ public class VendorDriverService {
         return vendorDriverRepository.findById(driverId);
     }
 
-    public VendorDriver createDriver(VendorDriver vendorDriver, MultipartFile driverImageFile, MultipartFile driverSelfieFile, MultipartFile dLnoImageFile, MultipartFile pvcImageFile, MultipartFile driverDoc1ImageFile, MultipartFile driverDoc2ImageFile, MultipartFile driverDoc3ImageFile) throws IOException {
+    public VendorDriver createDriver(VendorDriver vendorDriver, MultipartFile driverImageFile,
+            MultipartFile driverSelfieFile, MultipartFile dLnoImageFile, MultipartFile pvcImageFile,
+            MultipartFile driverDoc1ImageFile, MultipartFile driverDoc2ImageFile, MultipartFile driverDoc3ImageFile)
+            throws IOException {
         if (driverImageFile != null && !driverImageFile.isEmpty()) {
             String imageUrl = saveImage(driverImageFile, "driver");
             vendorDriver.setDriverImage(imageUrl);
@@ -64,8 +72,12 @@ public class VendorDriverService {
         return vendorDriverRepository.save(vendorDriver);
     }
 
-    public VendorDriver updateDriver(Integer driverId, VendorDriver driverDetails, MultipartFile driverImageFile, MultipartFile driverSelfieFile, MultipartFile dLnoImageFile, MultipartFile pvcImageFile, MultipartFile driverDoc1ImageFile, MultipartFile driverDoc2ImageFile, MultipartFile driverDoc3ImageFile) throws IOException {
-        VendorDriver existingDriver = vendorDriverRepository.findById(driverId).orElseThrow(() -> new RuntimeException("Driver not found"));
+    public VendorDriver updateDriver(Integer driverId, VendorDriver driverDetails, MultipartFile driverImageFile,
+            MultipartFile driverSelfieFile, MultipartFile dLnoImageFile, MultipartFile pvcImageFile,
+            MultipartFile driverDoc1ImageFile, MultipartFile driverDoc2ImageFile, MultipartFile driverDoc3ImageFile)
+            throws IOException {
+        VendorDriver existingDriver = vendorDriverRepository.findById(driverId)
+                .orElseThrow(() -> new RuntimeException("Driver not found"));
 
         existingDriver.setDriverName(driverDetails.getDriverName());
         existingDriver.setContactNo(driverDetails.getContactNo());
@@ -129,9 +141,40 @@ public class VendorDriverService {
         return "/uploads/images/" + entityType + "/" + newFileName;
     }
 
-    public VendorDriver updateStatus(int id, String status){
+    public VendorDriver updateStatus(int id, String status) {
         VendorDriver driver = this.vendorDriverRepository.findById(id).get();
         driver.setStatus(status);
         return vendorDriverRepository.save(driver);
+    }
+
+    public CustomBooking assignVendorDriverToBooking(int bookingId, int vendorDriverId) {
+        // Step 1: Fetch the existing booking from the database using the bookingId
+        Optional<CustomBooking> bookingOptional = this.customBookingRepository.findById(bookingId);
+
+        if (bookingOptional.isPresent()) {
+            CustomBooking booking = bookingOptional.get(); // Get the existing booking
+
+            // Step 2: Fetch the vendor by vendorId
+            Optional<VendorDriver> vendorOptional = this.vendorDriverRepository.findById(vendorDriverId);
+
+            if (vendorOptional.isPresent()) {
+                VendorDriver vendor = vendorOptional.get(); // Get the existing vendor
+
+                // Step 3: Assign the vendor to the booking
+                booking.setDriver(vendor);
+
+                // Step 4: Save the updated booking (the vendor is now assigned to this specific
+                // booking row)
+                return this.customBookingRepository.save(booking);
+            } else {
+                // Vendor not found, returning null or can log the error if necessary
+                System.out.println("Vendor with ID " + vendorDriverId + " not found.");
+                return null;
+            }
+        } else {
+            // Booking not found, returning null or can log the error if necessary
+            System.out.println("Booking with ID " + bookingId + " not found.");
+            return null;
+        }
     }
 }

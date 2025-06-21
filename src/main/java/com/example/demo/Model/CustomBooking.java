@@ -39,7 +39,7 @@ public class CustomBooking {
     private String communicationAddress;
     
     @Column(nullable = true)
-    private Double alternativeMobileNo;
+    private String alternativeMobileNo;
 
     @ManyToOne
     @JoinColumn(name = "vendor_id")
@@ -68,7 +68,7 @@ public class CustomBooking {
             String bookingDetails, String bookingAmount, String customerName, String customerMobileNo,
             String pickupLocation, String dropLocation, String pickUpDate, String pickUpTime, String carType,
             String returnDate, String tripType, Vendor vendor, int collection, String fullName, String customerEmail,
-            String communicationAddress, double alternativeMobileNo) {
+            String communicationAddress, String alternativeMobileNo) {
         this.bookingId = bookingId;
         this.bookingDate = bookingDate;
         this.bookingTime = bookingTime;
@@ -285,11 +285,11 @@ public class CustomBooking {
         this.communicationAddress = communicationAddress;
     }
 
-    public Double getAlternativeMobileNo() {
+    public String getAlternativeMobileNo() {
         return alternativeMobileNo;
     }
 
-    public void setAlternativeMobileNo(Double alternativeMobileNo) {
+    public void setAlternativeMobileNo(String alternativeMobileNo) {
         this.alternativeMobileNo = alternativeMobileNo;
     }
 }
