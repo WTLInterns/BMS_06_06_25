@@ -7,6 +7,7 @@ import com.example.demo.Service.WhatsAppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -213,16 +214,29 @@ public class CustomBookingController {
                             <div class="info-grid">
                                 <div class="info-item">
                                     <div class="info-label">Booking ID</div>
-                                    <div class="info-value">#%d</div>
+                                    <div class="info-value">%d</div>
                                 </div>
-                                <div class="info-item">
-                                    <div class="info-label">Booking Date</div>
+                                 <div class="info-item">
+                                    <div class="info-label">Customer Name: </div>
+                                    <div class="info-value">%s</div>
+                                </div>
+                                 <div class="info-item">
+                                    <div class="info-label">Mobile Number</div>
+                                    <div class="info-value">%s</div>
+                                </div>
+                                 <div class="info-item">
+                                    <div class="info-label">Base Amount</div>
                                     <div class="info-value">%s</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="info-label">Booking Time</div>
+                                    <div class="info-label">Gst</div>
                                     <div class="info-value">%s</div>
                                 </div>
+                                <div class="info-item">
+                                    <div class="info-label">Service Charge</div>
+                                    <div class="info-value">%s</div>
+                                </div>
+                        
                                 <div class="info-item">
                                     <div class="info-label">Total Amount</div>
                                     <div class="info-value">₹%s</div>
@@ -278,9 +292,12 @@ public class CustomBookingController {
             </html>
             """,
                 booking.getBookingId(),
-                booking.getBookingDate(),
-                booking.getBookingTime(),
+                booking.getCustomerName(),
+                booking.getCustomerMobileNo(),
                 booking.getBookingAmount(),
+                booking.getGst(),
+                booking.getServiceCharge(),
+                booking.getTotalAmount(),
                 booking.getPickupLocation(),
                 booking.getPickUpDate(),
                 booking.getPickUpTime(),
@@ -294,19 +311,19 @@ public class CustomBookingController {
     }
 
 
+    
     private String createCustomerWhatsAppMessage(CustomBooking booking) {
         return String.format("""
             🎉 *BOOKING CONFIRMED* 🎉
             
             📋 *Booking Details*
             🆔 ID: %d
-            📅 Date: %s
-            ⏰ Time: %s
-            💰 Amount: ₹%s
-            
-            👤 *Customer Info*
-            Name: %s
+            👤 Customer: %s
             📱 Mobile: %s
+            💰 Base Amount: ₹%s
+            🧾 GST: ₹%s
+            💼 Service Charge: ₹%s
+            💵 Total Amount: ₹%s
             
             🚗 *Trip Details*
             📍 Pickup: %s
@@ -323,16 +340,17 @@ public class CustomBookingController {
             
             ✅ Have a safe journey!
             """,
-                booking.getBookingId(),
-                booking.getBookingDate(),
-                booking.getBookingTime(),
-                booking.getBookingAmount(),
+              booking.getBookingId(),
                 booking.getCustomerName(),
                 booking.getCustomerMobileNo(),
+                booking.getBookingAmount(),
+                booking.getGst(),
+                booking.getServiceCharge(),
+                booking.getTotalAmount(),
                 booking.getPickupLocation(),
-                booking.getDropLocation(),
                 booking.getPickUpDate(),
                 booking.getPickUpTime(),
+                booking.getDropLocation(),
                 booking.getReturnDate(),
                 booking.getDriver() != null ? booking.getDriver().getDriverName() : "TBD",
                 booking.getDriver() != null ? booking.getDriver().getContactNo() : "TBD",
@@ -341,7 +359,6 @@ public class CustomBookingController {
         );
     }
 
-    // DRIVER EMAIL MESSAGE
     private String createDriverEmailMessage(CustomBooking booking) {
         return String.format("""
             <!DOCTYPE html>
@@ -380,20 +397,30 @@ public class CustomBookingController {
                             <div class="section-title">📋 Booking Information</div>
                             <div class="info-grid">
                                 <div class="info-item">
-                                    <div class="info-label">Booking ID</div>
-                                    <div class="info-value">#%d</div>
+                                    <div class="info-label">Booking ID:</div>
+                                    <div class="info-value">%d</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="info-label">Booking Date</div>
+                                    <div class="info-label">Base Amount:</div>
                                     <div class="info-value">%s</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="info-label">Booking Time</div>
+                                    <div class="info-label">Gst:</div>
                                     <div class="info-value">%s</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="info-label">Trip Amount</div>
-                                    <div class="info-value">₹%s</div>
+                                    <div class="info-label">Service Charge:</div>
+                                    <div class="info-value">%s</div>
+                                </div>
+                            
+                                <div class="info-item">
+                                    <div class="info-label">Total Amount:</div>
+                                    <div class="info-value">%s</div>
+                                </div>
+
+                                <div class="info-item">
+                                    <div class="info-label">Cash To Be Collect:</div>
+                                    <div class="info-value">%d</div>
                                 </div>
                             </div>
                         </div>
@@ -448,9 +475,11 @@ public class CustomBookingController {
             </html>
             """,
                 booking.getBookingId(),
-                booking.getBookingDate(),
-                booking.getBookingTime(),
                 booking.getBookingAmount(),
+                booking.getGst(),
+                booking.getServiceCharge(),
+                booking.getTotalAmount(),
+                booking.getCollection(),
                 booking.getCustomerName(),
                 booking.getCustomerMobileNo(),
                 booking.getPickupLocation(),
@@ -461,19 +490,21 @@ public class CustomBookingController {
         );
     }
 
-    // DRIVER WHATSAPP MESSAGE
+
     private String createDriverWhatsAppMessage(CustomBooking booking) {
         return String.format("""
             🚨 *NEW BOOKING ASSIGNMENT* 🚨
             
             📋 *Trip Details*
             🆔 Booking ID: %d
-            📅 Date: %s
-            ⏰ Time: %s
-            💰 Amount: ₹%s
-            
-            👤 *Customer Details*
-            Name: %s
+            💰 Base Amount: ₹%s
+            🧾 GST: ₹%s
+            💼 Service Charge: ₹%s
+            💵 Total Amount: ₹%s
+            💵 Cash To Be Collect: ₹%d
+
+            👤 *Customer Info*
+            👤 Name: %s
             📱 Mobile: %s
             
             🗺️ *Route Info*
@@ -486,10 +517,12 @@ public class CustomBookingController {
             ⚠️ *Please contact customer before pickup!*
             🚗 Drive safely!
             """,
-                booking.getBookingId(),
-                booking.getBookingDate(),
-                booking.getBookingTime(),
+                 booking.getBookingId(),
                 booking.getBookingAmount(),
+                booking.getGst(),
+                booking.getServiceCharge(),
+                booking.getTotalAmount(),
+                booking.getCollection(),
                 booking.getCustomerName(),
                 booking.getCustomerMobileNo(),
                 booking.getPickupLocation(),

@@ -18,6 +18,9 @@ public class CustomBookingService {
     @Autowired
     private CustomBookingRepository customBookingRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     public List<CustomBooking> getAllBookings() {
         return customBookingRepository.findAll();
     }
@@ -92,13 +95,91 @@ public class CustomBookingService {
 
     //Till Here
 
-    public CustomBooking createBooking(Long vendorId, CustomBooking customBooking) {
-        Vendor vendor = new Vendor();
-        vendor.setId(vendorId);
-        customBooking.setVendor(vendor);
-        customBooking.setBookingStatus("0");
-        return customBookingRepository.save(customBooking);
-    }
+ public CustomBooking createBooking(Long vendorId, CustomBooking customBooking) {
+    Vendor vendor = new Vendor();
+    vendor.setId(vendorId);
+ 
+    double bookingAmount = Double.parseDouble(customBooking.getBookingAmount());
+    double gst = bookingAmount * 0.05;
+    double serviceCharge = bookingAmount * 0.10;
+    double totalAmount = bookingAmount + gst + serviceCharge;
+ 
+    customBooking.setGst(String.format("%.2f", gst));
+    customBooking.setServiceCharge(String.format("%.2f", serviceCharge));
+    customBooking.setTotalAmount(String.format("%.2f", totalAmount));
+    customBooking.setBookingAmount(String.format("%.2f", bookingAmount));
+    customBooking.setVendor(vendor);
+ 
+    CustomBooking savedBooking = customBookingRepository.save(customBooking);
+ 
+    // Prepare styled invoice email
+    String subject = "Invoice: Your Booking Details";
+    String message = String.format("""
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto;">
+            <h2 style="color: #2E86C1; text-align: center;">Booking Invoice</h2>
+            <table style="width: 100%%; border-collapse: collapse; margin-top: 20px;">
+                <tr><td><strong>Booking ID:</strong></td><td>%d</td></tr>
+                <tr><td><strong>Date:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Time:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Customer Name:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Mobile:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Email:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Pickup Location:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Drop Location:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Pickup Date & Time:</strong></td><td>%s at %s</td></tr>
+                <tr><td><strong>Return Date:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Car Type:</strong></td><td>%s</td></tr>
+            </table>
+ 
+            <h3 style="color: #117A65; margin-top: 30px;">Payment Summary</h3>
+            <table style="width: 100%%; border: 1px solid #ccc; border-collapse: collapse;">
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 8px; border: 1px solid #ccc; text-align: left;">Description</th>
+                    <th style="padding: 8px; border: 1px solid #ccc; text-align: right;">Amount (INR)</th>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ccc;">Base Fare</td>
+                    <td style="padding: 8px; border: 1px solid #ccc; text-align: right;">%s</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ccc;">GST (5%%)</td>
+                    <td style="padding: 8px; border: 1px solid #ccc; text-align: right;">%s</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ccc;">Service Charge (10%%)</td>
+                    <td style="padding: 8px; border: 1px solid #ccc; text-align: right;">%s</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #f9f9f9;">
+                    <td style="padding: 8px; border: 1px solid #ccc;">Total Amount</td>
+                    <td style="padding: 8px; border: 1px solid #ccc; text-align: right;">%s</td>
+                </tr>
+            </table>
+ 
+            <p style="margin-top: 30px; text-align: center;">Thank you for booking with us!</p>
+        </div>
+        """,
+        savedBooking.getBookingId(),
+        savedBooking.getBookingDate(),
+        savedBooking.getBookingTime(),
+        savedBooking.getCustomerName(),
+        savedBooking.getCustomerMobileNo(),
+        savedBooking.getCustomerEmail(),
+        savedBooking.getPickupLocation(),
+        savedBooking.getDropLocation(),
+        savedBooking.getPickUpDate(),
+        savedBooking.getPickUpTime(),
+        savedBooking.getReturnDate(),
+        savedBooking.getCarType(),
+        savedBooking.getBookingAmount(),
+        savedBooking.getGst(),
+        savedBooking.getServiceCharge(),
+        savedBooking.getTotalAmount()
+    );
+ 
+    emailService.sendHtmlEmail(message, subject, savedBooking.getCustomerEmail());
+ 
+    return savedBooking;
+}
 
     public CustomBooking updateBooking(Long vendorId, Integer bookingId, CustomBooking bookingDetails) {
         CustomBooking existingBooking = customBookingRepository.findById(bookingId)
@@ -130,6 +211,10 @@ public class CustomBookingService {
         existingBooking.setCustomerEmail(bookingDetails.getCustomerEmail());
         existingBooking.setCommunicationAddress(bookingDetails.getCommunicationAddress());
         existingBooking.setAlternativeMobileNo(bookingDetails.getAlternativeMobileNo());
+        existingBooking.setGst(bookingDetails.getGst());
+        existingBooking.setServiceCharge(bookingDetails.getServiceCharge());
+        existingBooking.setTotalAmount(bookingDetails.getTotalAmount());
+        
 
         return customBookingRepository.save(existingBooking);
     }
